@@ -115,6 +115,22 @@ local function Btn(nm,par,txt,sz,ps,bg,tx,fs)
     return b
 end
 
+local function addPanelGloss(frame)
+    local grad = Instance.new("UIGradient")
+    grad.Rotation = 90
+    grad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255,255,255)),
+        ColorSequenceKeypoint.new(0.45, Color3.fromRGB(210,220,255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(160,170,190)),
+    })
+    grad.Transparency = NumberSequence.new({
+        NumberSequenceKeypoint.new(0, 0.96),
+        NumberSequenceKeypoint.new(0.4, 0.985),
+        NumberSequenceKeypoint.new(1, 0.95),
+    })
+    grad.Parent = frame
+end
+
 -- ════════════════════════════════════════════════════════════════
 -- STATE
 -- ════════════════════════════════════════════════════════════════
@@ -136,7 +152,7 @@ if Gui:FindFirstChild("BSCGui") then Gui.BSCGui:Destroy() end
 local SG = Instance.new("ScreenGui")
 SG.Name="BSCGui";SG.ResetOnSpawn=false
 SG.ZIndexBehavior=Enum.ZIndexBehavior.Sibling
-SG.IgnoreGuiInset=true;SG.DisplayOrder=10;SG.Parent=Gui
+SG.IgnoreGuiInset=true;SG.DisplayOrder=30;SG.Enabled=true;SG.Parent=Gui
 
 -- ════════════════════════════════════════════════════════════════
 -- §1  MAIN MENU — Kuş Bakışı ViewportFrame
@@ -190,27 +206,27 @@ pvp(Vector3.new(0.6,0.22,130),Vector3.new(0,0.12,0),"Bright yellow",Enum.Materia
 pvp(Vector3.new(28,7,22),   Vector3.new(0,3.5,0),   "Smoky grey", Enum.Material.Concrete)
 pvp(Vector3.new(28,0.4,15), Vector3.new(0,0.3,20),  "Light stone grey", Enum.Material.Concrete) -- avlu
 -- Prison neon çatı (turuncu)
-pvp(Vector3.new(26,0.5,20), Vector3.new(0,7.3,0),   "Bright orange", Enum.Material.Neon)
+pvp(Vector3.new(26,0.5,20), Vector3.new(0,7.3,0),   "Bright orange", Enum.Material.SmoothPlastic)
 
 -- Police HQ (kuzey, mavi ton)
 pvp(Vector3.new(32,9,25),   Vector3.new(40,-15,0),  "Light stone grey", Enum.Material.Concrete)
-pvp(Vector3.new(30,0.5,23), Vector3.new(40,-5.5,0), "Cyan", Enum.Material.Neon)
+pvp(Vector3.new(30,0.5,23), Vector3.new(40,-5.5,0), "Cyan", Enum.Material.SmoothPlastic)
 
 -- Criminal Base (güney batı, siyah/kırmızı)
 pvp(Vector3.new(26,8,20),   Vector3.new(-45,0,40),  "Really black", Enum.Material.Concrete)
-pvp(Vector3.new(24,0.4,18), Vector3.new(-45,8.3,40),"Bright red", Enum.Material.Neon)
+pvp(Vector3.new(24,0.4,18), Vector3.new(-45,8.3,40),"Bright red", Enum.Material.SmoothPlastic)
 
 -- Şehir binaları (kuzey batı)
 local cityColors = {"Sand green","Pastel blue","Reddish brown","Institutional white","Sand yellow"}
 for i=0,4 do
     pvp(Vector3.new(7,5+i*2,6), Vector3.new(-45+i*10,-15,-35+i*5), cityColors[i+1], Enum.Material.SmoothPlastic)
-    pvp(Vector3.new(7,0.3,6),   Vector3.new(-45+i*10,2+i,-35+i*5), "Bright yellow", Enum.Material.Neon)
+    pvp(Vector3.new(7,0.3,6),   Vector3.new(-45+i*10,2+i,-35+i*5), "Bright yellow", Enum.Material.SmoothPlastic)
 end
 
 -- Endüstriyel (doğu)
 pvp(Vector3.new(28,12,24),  Vector3.new(60,0,40),   "Dark stone grey", Enum.Material.Concrete)
 pvp(Vector3.new(4,28,4),    Vector3.new(65,6,48),   "Dark stone grey", Enum.Material.Brick) -- baca
-pvp(Vector3.new(3,3,3),     Vector3.new(65,22,48),  "Bright orange", Enum.Material.Neon)
+pvp(Vector3.new(3,3,3),     Vector3.new(65,22,48),  "Bright orange", Enum.Material.SmoothPlastic)
 
 -- Sınır duvarları (ince beyaz çizgi)
 pvp(Vector3.new(160,8,2),   Vector3.new(0,0,65),    "Institutional white", Enum.Material.Concrete)
@@ -221,7 +237,7 @@ pvp(Vector3.new(2,8,130),   Vector3.new(-80,0,0),   "Institutional white", Enum.
 -- Köşe kuleler
 for _,xz in ipairs({{80,65},{-80,65},{80,-65},{-80,-65}}) do
     local kule = pvp(Vector3.new(5,14,5),  Vector3.new(xz[1],0,xz[2]),  "Dark stone grey", Enum.Material.Concrete)
-    pvp(Vector3.new(1,1,1), Vector3.new(xz[1],7.5,xz[2]), "Bright yellow", Enum.Material.Neon)
+    pvp(Vector3.new(1,1,1), Vector3.new(xz[1],7.5,xz[2]), "Bright yellow", Enum.Material.SmoothPlastic)
 end
 
 -- Ağaçlar (küçük yeşil toplar)
@@ -298,16 +314,24 @@ local verLbl=Lbl("Ver",MM,"ULTRA v3.0",UDim2.new(0,200,0,15),UDim2.new(0.5,-100,
     C.dim,10,Enum.Font.Gotham,Enum.TextXAlignment.Center); verLbl.ZIndex=5
 
 -- ── MENÜ BUTONLARI (baştan TAM görünür) ──
-local btnHolder = Fr("BtnHolder",MM,UDim2.new(0,250,0,0),UDim2.new(0.5,-125,0.5,-20),C.black,1)
-btnHolder.ZIndex=5; btnHolder.AutomaticSize=Enum.AutomaticSize.Y
+local btnHolder = Instance.new("CanvasGroup")
+btnHolder.Name = "BtnHolder"
+btnHolder.Size = UDim2.new(0,250,0,0)
+btnHolder.Position = UDim2.new(0.5,-125,0.5,-20)
+btnHolder.BackgroundColor3 = C.black
+btnHolder.BackgroundTransparency = 1
+btnHolder.BorderSizePixel = 0
+btnHolder.AutomaticSize = Enum.AutomaticSize.Y
+btnHolder.ZIndex = 5
+btnHolder.Parent = MM
 Instance.new("UIListLayout",btnHolder).Padding=UDim.new(0,10)
 
 local MENU_DEFS = {
-    {k="Play",     lbl="▶   OYNA",             hi=true},
-    {k="Settings", lbl="⚙   AYARLAR"               },
-    {k="Logs",     lbl="⚡   GÜNCELLEME LOGU"       },
-    {k="Rules",    lbl="⚑   KURALLAR"              },
-    {k="Credits",  lbl="★   YAPIMCILAR"             },
+    {k="Play",     lbl="▶   PLAY",             hi=true},
+    {k="Settings", lbl="⚙   SETTINGS"               },
+    {k="Logs",     lbl="⚡   PATCH NOTES"       },
+    {k="Rules",    lbl="⚑   RULES"              },
+    {k="Credits",  lbl="★   CREDITS"             },
 }
 local mBtns = {}
 for _,bd in ipairs(MENU_DEFS) do
@@ -390,10 +414,10 @@ local function makePanel(title)
     return sc, show, hide
 end
 
-local setScr,setShow,setHide = makePanel("Ayarlar")
-local logScr,logShow,logHide = makePanel("Güncelleme Logu")
-local rulScr,rulShow,rulHide = makePanel("Kurallar")
-local crdScr,crdShow,crdHide= makePanel("Yapımcılar")
+local setScr,setShow,setHide = makePanel("Settings")
+local logScr,logShow,logHide = makePanel("Patch Notes")
+local rulScr,rulShow,rulHide = makePanel("Rules")
+local crdScr,crdShow,crdHide= makePanel("Credits")
 
 local function addEntry(scr, title, desc, col)
     local item=Fr("E",scr,UDim2.new(1,0,0,0),nil,C.card); item.AutomaticSize=Enum.AutomaticSize.Y; Corn(item,8); Strk(item,C.border); Pad(item,14); item.ZIndex=43
@@ -402,27 +426,27 @@ local function addEntry(scr, title, desc, col)
 end
 
 -- Ayarlar içerik
-addEntry(setScr,"🎮 Grafik Kalitesi","Performans için düşük grafik önerilir.",C.accentH)
-addEntry(setScr,"🔊 Ses","Oyun içi efektler ve müzik ayarları.",C.accentG)
-addEntry(setScr,"🌐 Dil","Türkçe / English",C.accentH)
-addEntry(setScr,"📷 Kamera","Kamera hassasiyeti ve FOV ayarları.",C.accentG)
+addEntry(setScr,"🎮 Graphics Quality","Lower graphics are recommended for smoother performance.",C.accentH)
+addEntry(setScr,"🔊 Audio","In-game sound effects and music settings.",C.accentG)
+addEntry(setScr,"🌐 Language","English / Turkish",C.accentH)
+addEntry(setScr,"📷 Camera","Camera sensitivity and FOV settings.",C.accentG)
 
 -- Log içerik
-addEntry(logScr,"v3.0 ULTRA","• Kuş bakışı harita\n• Gelişmiş animasyon sistemi\n• Keycard kapılar\n• Rope/Handcuff/Taser/Collar tools\n• Emotes sistemi\n• Criminal base girilebilir\n• Prison bodrum zindanı",C.neonG)
-addEntry(logScr,"v2.0","• İyileştirilmiş harita modeli\n• Team seçimi eklendi\n• Loading screen animasyonu",C.accentH)
-addEntry(logScr,"v1.0","• İlk sürüm yayınlandı",C.dim)
+addEntry(logScr,"v3.0 ULTRA","• Bird-eye map preview\n• Advanced animation system\n• Keycard doors\n• Rope/Handcuff/Taser/Collar tools\n• Emote system\n• Enterable criminal base\n• Prison basement dungeon",C.neonG)
+addEntry(logScr,"v2.0","• Improved map model\n• Team selection added\n• Loading screen animation",C.accentH)
+addEntry(logScr,"v1.0","• Initial release",C.dim)
 
 -- Kurallar
-addEntry(rulScr,"⚠ Kural 1","Başkalarına saygılı ol. Hakaret yasaktır.",C.accentR)
-addEntry(rulScr,"⚠ Kural 2","Bug exploit kullanmak yasaklanmıştır.",C.accentR)
-addEntry(rulScr,"✅ Kural 3","Esir alırken animasyon kullan.",C.accentG)
-addEntry(rulScr,"✅ Kural 4","Criminal, polis üssüne giremez.",C.accentG)
-addEntry(rulScr,"ℹ Kural 5","Admin kararları kesindir.",C.accentH)
+addEntry(rulScr,"⚠ Rule 1","Be respectful to others. Insults are not allowed.",C.accentR)
+addEntry(rulScr,"⚠ Rule 2","Using bug exploits is prohibited.",C.accentR)
+addEntry(rulScr,"✅ Rule 3","Use proper animations while restraining players.",C.accentG)
+addEntry(rulScr,"✅ Rule 4","Criminal team cannot enter police HQ.",C.accentG)
+addEntry(rulScr,"ℹ Rule 5","Admin decisions are final.",C.accentH)
 
 -- Credits
-addEntry(crdScr,"👑 BSC Studios","Ana geliştirici ekibi",C.accentH)
-addEntry(crdScr,"🎨 Tasarım","UI/UX — premium tasarım sistemi",C.neonG)
-addEntry(crdScr,"🗺 Harita","Detaylı prison ortam tasarımı",C.cyan)
+addEntry(crdScr,"👑 BSC Studios","Core development team",C.accentH)
+addEntry(crdScr,"🎨 Design","UI/UX — premium design system",C.neonG)
+addEntry(crdScr,"🗺 Map","Detailed prison environment design",C.cyan)
 
 mBtns.Settings.MouseButton1Click:Connect(setShow)
 mBtns.Logs.MouseButton1Click:Connect(logShow)
@@ -459,6 +483,7 @@ buildDummy("Male")
 
 -- Sağ panel
 local CP=Fr("CP",CC,UDim2.new(1,-290,1,0),UDim2.new(0,280,0,0),C.panel); CP.ZIndex=21; Strk(CP,C.border)
+addPanelGloss(CP)
 Pad(CP,nil,30,30,30,30)
 
 -- Adım göstergesi
@@ -481,26 +506,26 @@ for i=1,3 do
 end
 
 -- Adım 1 – Kişisel
-local iFirst,iFirstW = Inp("FName",STEPS[1],"Ad",UDim2.new(1,0,0,40),UDim2.new(0,0,0,0))
+local iFirst,iFirstW = Inp("FName",STEPS[1],"First Name",UDim2.new(1,0,0,40),UDim2.new(0,0,0,0))
 iFirstW.ZIndex=23
-local iLast,iLastW = Inp("LName",STEPS[1],"Soyad",UDim2.new(1,0,0,40),UDim2.new(0,0,0,50))
+local iLast,iLastW = Inp("LName",STEPS[1],"Last Name",UDim2.new(1,0,0,40),UDim2.new(0,0,0,50))
 iLastW.ZIndex=23
-local iAge,iAgeW = Inp("Age",STEPS[1],"Yaş",UDim2.new(0.45,0,0,40),UDim2.new(0,0,0,100))
+local iAge,iAgeW = Inp("Age",STEPS[1],"Age",UDim2.new(0.45,0,0,40),UDim2.new(0,0,0,100))
 iAgeW.ZIndex=23
 -- Cinsiyet
 local genderW=Fr("GW",STEPS[1],UDim2.new(1,0,0,40),UDim2.new(0,0,0,152),C.black,1); genderW.ZIndex=22
-local gM=Btn("GM",genderW,"♂ Erkek",UDim2.new(.48,0,1,0),nil,C.accent,C.white,12); gM.ZIndex=23
-local gF=Btn("GF",genderW,"♀ Kadın",UDim2.new(.48,0,1,0),UDim2.new(.52,0,0,0),C.btn,C.dim,12); gF.ZIndex=23
+local gM=Btn("GM",genderW,"♂ Male",UDim2.new(.48,0,1,0),nil,C.accent,C.white,12); gM.ZIndex=23
+local gF=Btn("GF",genderW,"♀ Female",UDim2.new(.48,0,1,0),UDim2.new(.52,0,0,0),C.btn,C.dim,12); gF.ZIndex=23
 gM.MouseButton1Click:Connect(function() charData.gender="Male"; tw(gM,{BackgroundColor3=C.accent},.2):Play(); tw(gF,{BackgroundColor3=C.btn},.2):Play(); tw(gM,{TextColor3=C.white},.2):Play(); tw(gF,{TextColor3=C.dim},.2):Play(); buildDummy("Male") end)
 gF.MouseButton1Click:Connect(function() charData.gender="Female"; tw(gF,{BackgroundColor3=C.accent},.2):Play(); tw(gM,{BackgroundColor3=C.btn},.2):Play(); tw(gF,{TextColor3=C.white},.2):Play(); tw(gM,{TextColor3=C.dim},.2):Play(); buildDummy("Female") end)
 
 -- Adım 2 – Görünüm
-Lbl("HL",STEPS[2],"SAÇ STİLİ",UDim2.new(1,0,0,16),UDim2.new(0,0,0,0),C.dim,10,Enum.Font.GothamBold).ZIndex=23
+Lbl("HL",STEPS[2],"HAIR STYLE",UDim2.new(1,0,0,16),UDim2.new(0,0,0,0),C.dim,10,Enum.Font.GothamBold).ZIndex=23
 local hScr=Instance.new("ScrollingFrame"); hScr.Name="HS"; hScr.Size=UDim2.new(1,0,0,82); hScr.Position=UDim2.new(0,0,0,18)
 hScr.BackgroundTransparency=1; hScr.BorderSizePixel=0; hScr.ScrollBarThickness=2; hScr.ScrollingDirection=Enum.ScrollingDirection.X
 hScr.CanvasSize=UDim2.new(0,0,0,0); hScr.AutomaticCanvasSize=Enum.AutomaticSize.X; hScr.ZIndex=23; hScr.Parent=STEPS[2]
 Instance.new("UIListLayout",hScr).FillDirection=Enum.FillDirection.Horizontal
-Lbl("FL",STEPS[2],"YÜZ STİLİ",UDim2.new(1,0,0,16),UDim2.new(0,0,0,106),C.dim,10,Enum.Font.GothamBold).ZIndex=23
+Lbl("FL",STEPS[2],"FACE STYLE",UDim2.new(1,0,0,16),UDim2.new(0,0,0,106),C.dim,10,Enum.Font.GothamBold).ZIndex=23
 local fScr=Instance.new("ScrollingFrame"); fScr.Name="FS"; fScr.Size=UDim2.new(1,0,0,82); fScr.Position=UDim2.new(0,0,0,124)
 fScr.BackgroundTransparency=1; fScr.BorderSizePixel=0; fScr.ScrollBarThickness=2; fScr.ScrollingDirection=Enum.ScrollingDirection.X
 fScr.CanvasSize=UDim2.new(0,0,0,0); fScr.AutomaticCanvasSize=Enum.AutomaticSize.X; fScr.ZIndex=23; fScr.Parent=STEPS[2]
@@ -530,15 +555,15 @@ refreshHair(); refreshFace()
 -- Adım 3
 local confC=Fr("CC3",STEPS[3],UDim2.new(1,0,1,-36),nil,C.card); Corn(confC,8); Strk(confC,C.border); Pad(confC,14); confC.ZIndex=22
 local confI=Lbl("CI",confC,"",UDim2.new(1,0,1,0),nil,C.dim,13,Enum.Font.Gotham); confI.ZIndex=23; confI.TextWrapped=true; confI.TextYAlignment=Enum.TextYAlignment.Top; confI.LineHeight=1.65
-Lbl("WL",STEPS[3],"⚠  Bu bilgiler onaylandıktan sonra değiştirilemez.",UDim2.new(1,0,0,22),UDim2.new(0,0,1,-30),Color3.fromRGB(185,140,50),11).TextWrapped=true
+Lbl("WL",STEPS[3],"⚠  These details cannot be changed after confirmation.",UDim2.new(1,0,0,22),UDim2.new(0,0,1,-30),Color3.fromRGB(185,140,50),11).TextWrapped=true
 
 -- Nav
 local navW=Fr("Nav",CP,UDim2.new(1,0,0,46),UDim2.new(0,0,1,-70),C.black,1); navW.ZIndex=22
-local backB=Btn("Back",navW,"← GERİ",UDim2.new(.46,0,1,0),nil,C.btn,C.dim,12); backB.ZIndex=23
-local nextB=Btn("Next",navW,"İLERİ →",UDim2.new(.46,0,1,0),UDim2.new(.54,0,0,0),Color3.fromRGB(16,20,40),C.accentH,12); nextB.ZIndex=23
+local backB=Btn("Back",navW,"← BACK",UDim2.new(.46,0,1,0),nil,C.btn,C.dim,12); backB.ZIndex=23
+local nextB=Btn("Next",navW,"NEXT →",UDim2.new(.46,0,1,0),UDim2.new(.54,0,0,0),Color3.fromRGB(16,20,40),C.accentH,12); nextB.ZIndex=23
 
-local STITLES={"KİŞİSEL BİLGİLER","GÖRÜNÜM SEÇİMİ","ONAYLA"}
-local SSUBS={"Bu bilgiler daha sonra değiştirilemez.","Saç ve yüz stilini belirle.","Bilgilerin doğru mu kontrol et."}
+local STITLES={"PERSONAL DETAILS","APPEARANCE","CONFIRM"}
+local SSUBS={"These details cannot be edited later.","Choose your hair and face style.","Check your information before continuing."}
 
 local doShowLoading, doShowTeamSel
 
@@ -548,13 +573,13 @@ local function setStep(n)
     for i,s in ipairs(STEPS)do tw(s,{Position=UDim2.new(i-n,0,0,0)},.4,Enum.EasingStyle.Quart):Play() end
     backB.Visible=(n>1)
     if n==3 then
-        nextB.Text="✓ ONAYLA"; tw(nextB,{BackgroundColor3=Color3.fromRGB(14,40,18)},.3):Play()
-        confI.Text=("Ad Soyad : %s %s\nYaş          : %s\nCinsiyet  : %s\nSaç          : %s\nYüz           : %s"):format(
+        nextB.Text="✓ CONFIRM"; tw(nextB,{BackgroundColor3=Color3.fromRGB(14,40,18)},.3):Play()
+        confI.Text=("Name      : %s %s\nAge         : %s\nGender   : %s\nHair        : %s\nFace        : %s"):format(
             charData.firstName,charData.lastName,charData.age,
-            charData.gender=="Male" and "Erkek" or "Kadın",
+            charData.gender=="Male" and "Male" or "Female",
             (HAIR_IDS[charData.gender] or HAIR_IDS.Male)[charData.hair].name,
             FACE_IDS[charData.face].name)
-    else nextB.Text="İLERİ →"; tw(nextB,{BackgroundColor3=Color3.fromRGB(16,20,40)},.3):Play() end
+    else nextB.Text="NEXT →"; tw(nextB,{BackgroundColor3=Color3.fromRGB(16,20,40)},.3):Play() end
     if n==2 then refreshHair(); refreshFace() end
 end
 
@@ -582,13 +607,47 @@ end)
 -- ════════════════════════════════════════════════════════════════
 local LS=Fr("LS",SG,nil,nil,C.bg); LS.Visible=false; LS.ZIndex=60
 local lsLogo=Lbl("Logo",LS,"BSC PRISON",UDim2.new(0,550,0,60),UDim2.new(.5,-275,.5,-88),C.text,52,Enum.Font.GothamBlack,Enum.TextXAlignment.Center); lsLogo.ZIndex=61
-local lsMsg=Lbl("Msg",LS,"Yükleniyor…",UDim2.new(0,440,0,20),UDim2.new(.5,-220,.5,4),C.dim,13,Enum.Font.Gotham,Enum.TextXAlignment.Center); lsMsg.ZIndex=61
+local lsMsg=Lbl("Msg",LS,"Loading…",UDim2.new(0,440,0,20),UDim2.new(.5,-220,.5,4),C.dim,13,Enum.Font.Gotham,Enum.TextXAlignment.Center); lsMsg.ZIndex=61
 local lsBB=Fr("BB",LS,UDim2.new(0,360,0,4),UDim2.new(.5,-180,.5,32),Color3.fromRGB(16,16,26)); lsBB.ZIndex=61; Corn(lsBB,3)
 local lsBar=Fr("Bar",lsBB,UDim2.new(0,0,1,0),nil,C.accent); lsBar.ZIndex=62; Corn(lsBar,3)
 -- Animasyonlu bar parıltısı
 local lsGlow=Fr("BG",lsBar,UDim2.new(0,30,1,0),UDim2.new(1,-10,0,0),C.accentH,0.5); Corn(lsGlow,3)
 local lsPct=Lbl("Pct",LS,"0%",UDim2.new(0,90,0,16),UDim2.new(.5,-45,.5,44),C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Center); lsPct.ZIndex=61
-local LS_MSGS={"Güvenlik sistemleri başlatılıyor…","Koğuş kayıtları oluşturuluyor…","Bekçiler göreve çağrılıyor…","Güvenlik protokolleri hazırlanıyor…","Esir listeleri kontrol ediliyor…","Son kontroller yapılıyor…","Kapılar kilitleniyor…"}
+local LS_MSGS={"Booting security systems…","Preparing cell registry…","Dispatching guards…","Preparing security protocols…","Validating inmate records…","Running final checks…","Locking secure doors…"}
+
+local CLS=Fr("CharacterLoading",SG,nil,nil,C.black,0.22); CLS.Visible=false; CLS.ZIndex=76
+local clCard=Fr("Card",CLS,UDim2.new(0,500,0,180),UDim2.new(.5,-250,.5,-90),C.panel,0.03); clCard.ZIndex=77; Corn(clCard,14); Strk(clCard,C.border,1.5)
+Lbl("Title",clCard,"PREPARING YOUR CHARACTER",UDim2.new(1,-40,0,32),UDim2.new(0,20,0,16),C.text,18,Enum.Font.GothamBold,Enum.TextXAlignment.Left).ZIndex=78
+local clDesc=Lbl("Desc",clCard,"Spawning avatar, syncing animations, and loading role tools…",UDim2.new(1,-40,0,42),UDim2.new(0,20,0,50),C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Left)
+clDesc.ZIndex=78; clDesc.TextWrapped=true
+local clBarBg=Fr("BarBg",clCard,UDim2.new(1,-40,0,8),UDim2.new(0,20,1,-32),Color3.fromRGB(28,28,40)); clBarBg.ZIndex=78; Corn(clBarBg,4)
+local clBar=Fr("Bar",clBarBg,UDim2.new(0,0,1,0),nil,C.accent); clBar.ZIndex=79; Corn(clBar,4)
+
+local function showCharacterLoading(onDone)
+    CLS.Visible=true
+    clBar.Size=UDim2.new(0,0,1,0)
+    local progress, started = 0, tick()
+    local conn
+    conn = RunSvc.RenderStepped:Connect(function(dt)
+        progress = math.min(0.94, progress + dt*0.35)
+        clBar.Size = UDim2.new(progress,0,1,0)
+        local char = lp.Character
+        local hum = char and char:FindFirstChildOfClass("Humanoid")
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if (hum and hrp and (tick()-started) > 0.7) or (tick()-started) > 7 then
+            conn:Disconnect()
+            tw(clBar,{Size=UDim2.new(1,0,1,0)},.2):Play()
+            task.delay(.25,function()
+                tw(CLS,{BackgroundTransparency=1},.22):Play()
+                task.delay(.24,function()
+                    CLS.Visible=false
+                    CLS.BackgroundTransparency=0.22
+                    if onDone then onDone() end
+                end)
+            end)
+        end
+    end)
+end
 
 doShowLoading=function()
     pcall(function() if BSC_RE then BSC_RE.CreateCharacter:FireServer(charData) end end)
@@ -608,17 +667,18 @@ end
 -- §5  TAKIM SEÇİMİ
 -- ════════════════════════════════════════════════════════════════
 local TS=Fr("TS",SG,nil,nil,C.bg); TS.Visible=false; TS.ZIndex=70
-Lbl("TT",TS,"ROLÜNÜ SEÇ",UDim2.new(0,660,0,50),UDim2.new(.5,-330,0,30),C.text,32,Enum.Font.GothamBlack,Enum.TextXAlignment.Center).LetterSpacing=10
-Lbl("TSb",TS,"Dikkatli seç — bu karar oyunun gidişatını belirler.",UDim2.new(0,540,0,20),UDim2.new(.5,-270,0,88),C.dim,13,Enum.Font.Gotham,Enum.TextXAlignment.Center)
+Lbl("TT",TS,"CHOOSE YOUR ROLE",UDim2.new(0,660,0,50),UDim2.new(.5,-330,0,30),C.text,32,Enum.Font.GothamBlack,Enum.TextXAlignment.Center).LetterSpacing=10
+Lbl("TSb",TS,"Choose carefully — this decision changes your gameplay.",UDim2.new(0,540,0,20),UDim2.new(.5,-270,0,88),C.dim,13,Enum.Font.Gotham,Enum.TextXAlignment.Center)
 
 local TEAMS_CFG = {
-    {n="Cop",      icon="🚔",tag="MUHAFIZ",  desc="Kanunu uygula.\nDüzeni koru.\nMahkumları denetle.",         col=Color3.fromRGB(10,24,70), acc=Color3.fromRGB(50,90,215)},
-    {n="Prisoner", icon="⛓", tag="MAHKUM",   desc="Cezanı çek.\nMüttefik bul.\nKaçış planla.",                 col=Color3.fromRGB(58,32,6),  acc=Color3.fromRGB(195,122,35)},
-    {n="Criminal", icon="💀",tag="KRİMİNAL", desc="Kuralları çiğne.\nİsyanı yönet.\nKaos yarat.",              col=Color3.fromRGB(44,6,6),   acc=Color3.fromRGB(175,30,30)},
-    {n="Hostage",  icon="🙏",tag="REHİNE",   desc="Her ne pahasına yaşa.\nMasumiyetini kullan.\nGüvenli kal.", col=Color3.fromRGB(8,36,14),  acc=Color3.fromRGB(38,130,52)},
+    {n="Cop",      icon="🚔",tag="GUARD",    desc="Enforce the law.\nProtect order.\nControl inmates.",          col=Color3.fromRGB(10,24,70), acc=Color3.fromRGB(50,90,215)},
+    {n="Prisoner", icon="⛓", tag="PRISONER", desc="Serve your sentence.\nFind allies.\nPlan your escape.",      col=Color3.fromRGB(58,32,6),  acc=Color3.fromRGB(195,122,35)},
+    {n="Criminal", icon="💀",tag="CRIMINAL", desc="Break the rules.\nLead the riot.\nCreate chaos.",            col=Color3.fromRGB(44,6,6),   acc=Color3.fromRGB(175,30,30)},
+    {n="Hostage",  icon="🙏",tag="HOSTAGE",  desc="Survive at all costs.\nUse innocence smartly.\nStay safe.",  col=Color3.fromRGB(8,36,14),  acc=Color3.fromRGB(38,130,52)},
 }
 local CW,CG=222,16; local totalW=#TEAMS_CFG*(CW+CG)-CG
 local cardW=Fr("CW",TS,UDim2.new(0,totalW,0,280),UDim2.new(.5,-totalW/2,.5,-115),C.black,1); cardW.ZIndex=71
+addPanelGloss(cardW)
 
 for i,td in ipairs(TEAMS_CFG) do
     local xP=(i-1)*(CW+CG)
@@ -632,14 +692,19 @@ for i,td in ipairs(TEAMS_CFG) do
     local tl=Lbl("Tag",c,td.tag,UDim2.new(1,-16,0,15),UDim2.new(0,8,0,72),td.acc,10,Enum.Font.GothamBold,Enum.TextXAlignment.Center); tl.ZIndex=73; tl.LetterSpacing=5
     Lbl("Nm",c,td.n:upper(),UDim2.new(1,-16,0,22),UDim2.new(0,8,0,90),C.text,16,Enum.Font.GothamBlack,Enum.TextXAlignment.Center).ZIndex=73
     local dl=Lbl("Ds",c,td.desc,UDim2.new(1,-20,0,65),UDim2.new(0,10,0,116),C.dim,11,Enum.Font.Gotham,Enum.TextXAlignment.Center); dl.ZIndex=73; dl.TextWrapped=true; dl.LineHeight=1.5
-    local sb=Btn("Sel",c,"SEÇ",UDim2.new(1,-24,0,38),UDim2.new(0,12,1,-50),Color3.new(td.acc.R*.2,td.acc.G*.2,td.acc.B*.2),td.acc,12)
+    local sb=Btn("Sel",c,"SELECT",UDim2.new(1,-24,0,38),UDim2.new(0,12,1,-50),Color3.new(td.acc.R*.2,td.acc.G*.2,td.acc.B*.2),td.acc,12)
     sb.ZIndex=73; sb.Font=Enum.Font.GothamBold
     c.MouseEnter:Connect(function() tw(c,{Size=UDim2.new(0,CW+10,1,12),Position=UDim2.new(0,xP-5,0,-6)},.22):Play(); tw(cs,{Color=td.acc},.22):Play() end)
     c.MouseLeave:Connect(function() tw(c,{Size=UDim2.new(0,CW,1,0),Position=UDim2.new(0,xP,0,0)},.2):Play(); tw(cs,{Color=Color3.fromRGB(30,30,44)},.2):Play() end)
     sb.MouseButton1Click:Connect(function()
         pcall(function() if BSC_RE then BSC_RE.SelectTeam:FireServer(td.n) end end)
         tw(TS,{BackgroundTransparency=1},.5):Play()
-        task.delay(.55,function() TS.Visible=false; showHUD(td.n) end)
+        task.delay(.55,function()
+            TS.Visible=false
+            showCharacterLoading(function()
+                showHUD(td.n)
+            end)
+        end)
     end)
 end
 
@@ -659,14 +724,14 @@ end
 local HUD=Fr("HUD",SG,nil,nil,C.black,1); HUD.Visible=false; HUD.ZIndex=5
 
 local riotW=Fr("RW",HUD,UDim2.new(0,175,0,46),UDim2.new(0,14,1,-64),C.black,1); riotW.Visible=false; riotW.ZIndex=6
-local riotB=Btn("RB",riotW,"⚡  İSYAN ET",UDim2.new(1,0,1,0),nil,C.danger,C.dangerH,12); riotB.ZIndex=7; riotB.Font=Enum.Font.GothamBold; Strk(riotB,Color3.fromRGB(105,20,20))
+local riotB=Btn("RB",riotW,"⚡  START RIOT",UDim2.new(1,0,1,0),nil,C.danger,C.dangerH,12); riotB.ZIndex=7; riotB.Font=Enum.Font.GothamBold; Strk(riotB,Color3.fromRGB(105,20,20))
 
 local rPop=Fr("RPop",HUD,UDim2.new(0,380,0,210),UDim2.new(.5,-190,.5,-105),Color3.fromRGB(8,4,4)); rPop.Visible=false; rPop.ZIndex=30; Corn(rPop,12); Strk(rPop,Color3.fromRGB(85,16,16)); Pad(rPop,22)
 Lbl("RI",rPop,"⚠",UDim2.new(1,0,0,32),nil,Color3.fromRGB(220,100,38),28,Enum.Font.GothamBold,Enum.TextXAlignment.Center).ZIndex=31
-Lbl("RT",rPop,"İSYAN UYARISI",UDim2.new(1,0,0,22),UDim2.new(0,0,0,38),C.dangerH,15,Enum.Font.GothamBold,Enum.TextXAlignment.Center).ZIndex=31
-local rD=Lbl("RD",rPop,"Artık masum sayılmayacaksın!\nPolisler seni aktif tehdit olarak görecek.",UDim2.new(1,0,0,44),UDim2.new(0,0,0,66),Color3.fromRGB(150,80,80),12); rD.ZIndex=31; rD.TextWrapped=true; rD.TextXAlignment=Enum.TextXAlignment.Center
-local rConf=Btn("RC",rPop,"İSYANA KATIL",UDim2.new(.48,0,0,38),UDim2.new(0,0,1,-42),C.danger,C.dangerH,11); rConf.ZIndex=31; rConf.Font=Enum.Font.GothamBold
-local rCanc=Btn("RX",rPop,"İPTAL",UDim2.new(.48,0,0,38),UDim2.new(.52,0,1,-42),C.btn,C.dim,11); rCanc.ZIndex=31
+Lbl("RT",rPop,"RIOT WARNING",UDim2.new(1,0,0,22),UDim2.new(0,0,0,38),C.dangerH,15,Enum.Font.GothamBold,Enum.TextXAlignment.Center).ZIndex=31
+local rD=Lbl("RD",rPop,"You will no longer be treated as innocent.\nPolice will mark you as an active threat.",UDim2.new(1,0,0,44),UDim2.new(0,0,0,66),Color3.fromRGB(150,80,80),12); rD.ZIndex=31; rD.TextWrapped=true; rD.TextXAlignment=Enum.TextXAlignment.Center
+local rConf=Btn("RC",rPop,"JOIN RIOT",UDim2.new(.48,0,0,38),UDim2.new(0,0,1,-42),C.danger,C.dangerH,11); rConf.ZIndex=31; rConf.Font=Enum.Font.GothamBold
+local rCanc=Btn("RX",rPop,"CANCEL",UDim2.new(.48,0,0,38),UDim2.new(.52,0,1,-42),C.btn,C.dim,11); rCanc.ZIndex=31
 
 local function openRiot() rPop.Visible=true; rPop.BackgroundTransparency=1; rPop.Position=UDim2.new(.5,-190,.43,-105); tw(rPop,{BackgroundTransparency=0,Position=UDim2.new(.5,-190,.5,-105)},.3,Enum.EasingStyle.Back):Play() end
 local function closeRiot() tw(rPop,{BackgroundTransparency=1},.2):Play(); task.delay(.22,function() rPop.Visible=false end) end
@@ -675,12 +740,13 @@ rConf.MouseButton1Click:Connect(function()
     if isRioting then return end; isRioting=true
     pcall(function() if BSC_RE then BSC_RE.StartRiot:FireServer() end end)
     closeRiot(); tw(riotB,{BackgroundColor3=Color3.fromRGB(95,14,14)},.3):Play()
-    riotB.Text="⚡  İSYAN AKTİF"; riotB.Active=false
+    riotB.Text="⚡  RIOT ACTIVE"; riotB.Active=false
 end)
 
 -- Sağ panel toggle
 local spT=Btn("SPT",HUD,"❮",UDim2.new(0,28,0,78),UDim2.new(1,-44,.5,-39),Color3.fromRGB(9,9,14),C.dim,14); spT.ZIndex=6; Strk(spT,C.border)
 local SP=Fr("SP",HUD,UDim2.new(0,274,1,-86),UDim2.new(1,0,0,43),Color3.fromRGB(7,7,11)); SP.ZIndex=6; SP.ClipsDescendants=true; Strk(SP,C.border)
+addPanelGloss(SP)
 local tabBar=Fr("TB",SP,UDim2.new(1,0,0,38),nil,Color3.fromRGB(9,9,14)); tabBar.ZIndex=7
 local TABS={"Emotes","Inventory","Solve","Tools"}; local tabBs,tabCs={},{}
 for i,tn in ipairs(TABS) do
@@ -822,13 +888,13 @@ local EMOTE_LIST = {
     {icon="🙏",name="pray",    lbl="Dua"},
     {icon="💃",name="dance",   lbl="Dans"},
     {icon="👋",name="wave",    lbl="El Sal."},
-    {icon="🤔",name="think",   lbl="Düşün"},
+    {icon="🤔",name="think",   lbl="Think"},
     {icon="😴",name="sleep",   lbl="Uyu"},
-    {icon="🧎",name="kneel",   lbl="Diz Çök"},
+    {icon="🧎",name="kneel",   lbl="Kneel"},
     {icon="🪑",name="sit",     lbl="Otur"},
     {icon="↔️", name="layside", lbl="Yan Yat"},
-    {icon="😂",name="laugh",   lbl="Gül"},
-    {icon="✌️", name="peace",   lbl="Barış"},
+    {icon="😂",name="laugh",   lbl="Laugh"},
+    {icon="✌️", name="peace",   lbl="Peace"},
     {icon="👊",name="punch",   lbl="Yumruk"},
     {icon="🤝",name="greet",   lbl="Selamla"},
 }
@@ -855,12 +921,12 @@ local toolScroll=ScFr("ToolSc",toolC); toolScroll.ZIndex=8
 Instance.new("UIListLayout",toolScroll).Padding=UDim.new(0,8)
 
 local TOOL_INFO = {
-    {name="Keycard",   icon="🪪", desc="Keycard kapıları açar.", col=C.cyan},
-    {name="Handcuffs", icon="⛓",  desc="Hedefi kelepçeler. Yaklaş ve E'ye bas.", col=C.dim},
-    {name="Rope",      icon="🪢",  desc="Hedefi ipe bağla. Animasyonlu.", col=Color3.fromRGB(160,120,60)},
-    {name="Taser",     icon="⚡",  desc="Kısa süreliğine hedefi durdurur.", col=Color3.fromRGB(255,220,0)},
-    {name="Collar",    icon="📿",  desc="Tasma tak. Rehine kontrolü.", col=Color3.fromRGB(180,60,60)},
-    {name="Radio",     icon="📻",  desc="Takım iletişimi. Kullan: [G]", col=C.accentH},
+    {name="Keycard",   icon="🪪", desc="Opens keycard doors.", col=C.cyan},
+    {name="Handcuffs", icon="⛓",  desc="Handcuffs the target. Get close and press E.", col=C.dim},
+    {name="Rope",      icon="🪢",  desc="Tie a target with rope. Animated.", col=Color3.fromRGB(160,120,60)},
+    {name="Taser",     icon="⚡",  desc="Temporarily stuns the target.", col=Color3.fromRGB(255,220,0)},
+    {name="Collar",    icon="📿",  desc="Attach a collar for hostage control.", col=Color3.fromRGB(180,60,60)},
+    {name="Radio",     icon="📻",  desc="Team communication. Use: [G]", col=C.accentH},
 }
 
 for _,ti in ipairs(TOOL_INFO) do
@@ -875,16 +941,16 @@ end
 -- ════════════════════════════════════════════════════════════════
 local solveC=tabCs["Solve"]; Pad(solveC,10)
 local solveScr=ScFr("SS",solveC); solveScr.ZIndex=8; Instance.new("UIListLayout",solveScr).Padding=UDim.new(0,8)
-local solveEmp=Lbl("SE",solveScr,"Aktif kısıtlama yok.",UDim2.new(1,0,0,42),nil,C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Center); solveEmp.ZIndex=9
-local CNAMES={rope="İp Bağlı",handcuffs="Kelepçe",collar="Tasma",tape="Bant",chainlink="Zincir"}
+local solveEmp=Lbl("SE",solveScr,"No active restraints.",UDim2.new(1,0,0,42),nil,C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Center); solveEmp.ZIndex=9
+local CNAMES={rope="Tied by Rope",handcuffs="Handcuffs",collar="Collar",tape="Tape",chainlink="Chain"}
 local CTIMES={rope=3,handcuffs=5,collar=6,tape=2.5,chainlink=7}
 
 local function addConUI(cType)
     if constraintItems[cType] then return end; solveEmp.Visible=false
     local item=Fr("C_"..cType,solveScr,UDim2.new(1,0,0,72),nil,C.card); Corn(item,8); Strk(item,C.border); Pad(item,nil,12,12,10,10); item.ZIndex=8
     Lbl("CN",item,CNAMES[cType] or cType,UDim2.new(1,-80,0,18),nil,C.text,13,Enum.Font.GothamBold).ZIndex=9
-    Lbl("CT",item,"Kısıtlama aktif — bekle veya çöz",UDim2.new(1,-80,0,15),UDim2.new(0,0,0,22),C.dim,11).ZIndex=9; item:FindFirstChild("CT").TextWrapped=true
-    local sb=Btn("SB",item,"ÇÖZE",UDim2.new(0,66,0,32),UDim2.new(1,-66,.5,-16),Color3.fromRGB(14,38,14),C.accentG,11); sb.ZIndex=9; sb.Font=Enum.Font.GothamBold
+    Lbl("CT",item,"Restraint active — wait or resolve",UDim2.new(1,-80,0,15),UDim2.new(0,0,0,22),C.dim,11).ZIndex=9; item:FindFirstChild("CT").TextWrapped=true
+    local sb=Btn("SB",item,"RESOLVEE",UDim2.new(0,66,0,32),UDim2.new(1,-66,.5,-16),Color3.fromRGB(14,38,14),C.accentG,11); sb.ZIndex=9; sb.Font=Enum.Font.GothamBold
     local pb=Fr("PB",sb,UDim2.new(0,0,1,0),nil,Color3.fromRGB(22,60,22)); pb.ZIndex=8; Corn(pb,4)
     local solving=false
     sb.MouseButton1Click:Connect(function()
@@ -908,7 +974,7 @@ end
 -- ════════════════════════════════════════════════════════════════
 local invC=tabCs["Inventory"]; Pad(invC,10)
 local invScr=ScFr("IS",invC); invScr.ZIndex=8; Instance.new("UIListLayout",invScr).Padding=UDim.new(0,7)
-local invEmp=Lbl("IE",invScr,"Envanter boş.",UDim2.new(1,0,0,42),nil,C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Center); invEmp.ZIndex=9
+local invEmp=Lbl("IE",invScr,"Inventory is empty.",UDim2.new(1,0,0,42),nil,C.dim,12,Enum.Font.Gotham,Enum.TextXAlignment.Center); invEmp.ZIndex=9
 
 -- Backpack değişimi izle
 local function refreshInventory()
@@ -1133,7 +1199,7 @@ UIS.InputBegan:Connect(function(input, gpe)
 
         elseif tn == "Handcuffs" then
             pcall(function() if BSC_RE then BSC_RE.AddConstraint:FireServer(closest,"handcuffs") end end)
-            -- Kelepçe animasyonu (kol hareketi)
+            -- Handcuffs animasyonu (kol hareketi)
             task.spawn(function()
                 local tHum=tChar:FindFirstChildOfClass("Humanoid")
                 if tHum then tHum.WalkSpeed=0; tHum.JumpPower=0 end
@@ -1149,7 +1215,7 @@ UIS.InputBegan:Connect(function(input, gpe)
                 for _,side in ipairs({-0.5,0.5}) do
                     local spark=Instance.new("Part"); spark.Size=Vector3.new(0.2,0.2,(tHRP3.Position-hrp.Position).Magnitude)
                     spark.CFrame=CFrame.lookAt((hrp.Position+tHRP3.Position)/2,tHRP3.Position)
-                    spark.Anchored=true; spark.CanCollide=false; spark.Material=Enum.Material.Neon
+                    spark.Anchored=true; spark.CanCollide=false; spark.Material=Enum.Material.SmoothPlastic
                     spark.BrickColor=BrickColor.new("Bright yellow"); spark.Parent=workspace
                     task.delay(0.2,function() spark:Destroy() end)
                 end
@@ -1208,16 +1274,17 @@ task.spawn(function()
         if action == "removed" then removeConUI(cType) end
     end)
     BSC_RE.RiotBroadcast.OnClientEvent:Connect(function(who)
-        local n=Lbl("Notif",HUD,"⚡  "..who.." İSYAN BAŞLATTI!",UDim2.new(0,450,0,38),UDim2.new(.5,-225,0,12),C.dangerH,13,Enum.Font.GothamBold,Enum.TextXAlignment.Center)
+        local n=Lbl("Notif",HUD,"⚡  "..who.." STARTED A RIOT!",UDim2.new(0,450,0,38),UDim2.new(.5,-225,0,12),C.dangerH,13,Enum.Font.GothamBold,Enum.TextXAlignment.Center)
         n.BackgroundColor3=C.danger; n.BackgroundTransparency=0; n.ZIndex=50; Corn(n,8)
         n.TextTransparency=1; tw(n,{TextTransparency=0},.3):Play()
         task.delay(4,function() tw(n,{TextTransparency=1,BackgroundTransparency=1},.5):Play(); task.delay(.6,function()n:Destroy()end) end)
     end)
-    print("[BSC] ✓ Remotes bağlandı")
+    print("[BSC] ✓ Remotes connected")
 end)
 
 -- Backpack değişimi otomatik inventory güncelle
 lp.CharacterAdded:Connect(function(char)
+    if SG and SG.Parent then SG.Enabled = true end
     local bp = lp:WaitForChild("Backpack")
     bp.ChildAdded:Connect(function() if panelOpen then refreshInventory() end end)
     bp.ChildRemoved:Connect(function() if panelOpen then refreshInventory() end end)
@@ -1227,7 +1294,7 @@ lp.CharacterAdded:Connect(function(char)
     if emoteConn then emoteConn:Disconnect(); emoteConn=nil end
 end)
 
-print("[BSC] ✓ Client v3.0 ULTRA yüklendi — tüm sistemler aktif")
-print("[BSC] ✓ Animasyon sistemi: idle/run/jump + emotes")
-print("[BSC] ✓ Tool sistemi: Keycard/Rope/Handcuffs/Taser/Collar")
-print("[BSC] ✓ Kuş bakışı viewport aktif")
+print("[BSC] ✓ Client v3.0 ULTRA loaded — all systems active")
+print("[BSC] ✓ Animation system: idle/run/jump + emotes")
+print("[BSC] ✓ Tool system: Keycard/Rope/Handcuffs/Taser/Collar")
+print("[BSC] ✓ Bird-eye viewport active")
