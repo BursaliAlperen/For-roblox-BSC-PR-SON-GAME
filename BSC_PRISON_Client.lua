@@ -190,27 +190,27 @@ pvp(Vector3.new(0.6,0.22,130),Vector3.new(0,0.12,0),"Bright yellow",Enum.Materia
 pvp(Vector3.new(28,7,22),   Vector3.new(0,3.5,0),   "Smoky grey", Enum.Material.Concrete)
 pvp(Vector3.new(28,0.4,15), Vector3.new(0,0.3,20),  "Light stone grey", Enum.Material.Concrete) -- avlu
 -- Prison neon çatı (turuncu)
-pvp(Vector3.new(26,0.5,20), Vector3.new(0,7.3,0),   "Bright orange", Enum.Material.Neon)
+pvp(Vector3.new(26,0.5,20), Vector3.new(0,7.3,0),   "Bright orange", Enum.Material.SmoothPlastic)
 
 -- Police HQ (kuzey, mavi ton)
 pvp(Vector3.new(32,9,25),   Vector3.new(40,-15,0),  "Light stone grey", Enum.Material.Concrete)
-pvp(Vector3.new(30,0.5,23), Vector3.new(40,-5.5,0), "Cyan", Enum.Material.Neon)
+pvp(Vector3.new(30,0.5,23), Vector3.new(40,-5.5,0), "Cyan", Enum.Material.SmoothPlastic)
 
 -- Criminal Base (güney batı, siyah/kırmızı)
 pvp(Vector3.new(26,8,20),   Vector3.new(-45,0,40),  "Really black", Enum.Material.Concrete)
-pvp(Vector3.new(24,0.4,18), Vector3.new(-45,8.3,40),"Bright red", Enum.Material.Neon)
+pvp(Vector3.new(24,0.4,18), Vector3.new(-45,8.3,40),"Bright red", Enum.Material.SmoothPlastic)
 
 -- Şehir binaları (kuzey batı)
 local cityColors = {"Sand green","Pastel blue","Reddish brown","Institutional white","Sand yellow"}
 for i=0,4 do
     pvp(Vector3.new(7,5+i*2,6), Vector3.new(-45+i*10,-15,-35+i*5), cityColors[i+1], Enum.Material.SmoothPlastic)
-    pvp(Vector3.new(7,0.3,6),   Vector3.new(-45+i*10,2+i,-35+i*5), "Bright yellow", Enum.Material.Neon)
+    pvp(Vector3.new(7,0.3,6),   Vector3.new(-45+i*10,2+i,-35+i*5), "Bright yellow", Enum.Material.SmoothPlastic)
 end
 
 -- Endüstriyel (doğu)
 pvp(Vector3.new(28,12,24),  Vector3.new(60,0,40),   "Dark stone grey", Enum.Material.Concrete)
 pvp(Vector3.new(4,28,4),    Vector3.new(65,6,48),   "Dark stone grey", Enum.Material.Brick) -- baca
-pvp(Vector3.new(3,3,3),     Vector3.new(65,22,48),  "Bright orange", Enum.Material.Neon)
+pvp(Vector3.new(3,3,3),     Vector3.new(65,22,48),  "Bright orange", Enum.Material.SmoothPlastic)
 
 -- Sınır duvarları (ince beyaz çizgi)
 pvp(Vector3.new(160,8,2),   Vector3.new(0,0,65),    "Institutional white", Enum.Material.Concrete)
@@ -221,7 +221,7 @@ pvp(Vector3.new(2,8,130),   Vector3.new(-80,0,0),   "Institutional white", Enum.
 -- Köşe kuleler
 for _,xz in ipairs({{80,65},{-80,65},{80,-65},{-80,-65}}) do
     local kule = pvp(Vector3.new(5,14,5),  Vector3.new(xz[1],0,xz[2]),  "Dark stone grey", Enum.Material.Concrete)
-    pvp(Vector3.new(1,1,1), Vector3.new(xz[1],7.5,xz[2]), "Bright yellow", Enum.Material.Neon)
+    pvp(Vector3.new(1,1,1), Vector3.new(xz[1],7.5,xz[2]), "Bright yellow", Enum.Material.SmoothPlastic)
 end
 
 -- Ağaçlar (küçük yeşil toplar)
@@ -298,8 +298,16 @@ local verLbl=Lbl("Ver",MM,"ULTRA v3.0",UDim2.new(0,200,0,15),UDim2.new(0.5,-100,
     C.dim,10,Enum.Font.Gotham,Enum.TextXAlignment.Center); verLbl.ZIndex=5
 
 -- ── MENÜ BUTONLARI (baştan TAM görünür) ──
-local btnHolder = Fr("BtnHolder",MM,UDim2.new(0,250,0,0),UDim2.new(0.5,-125,0.5,-20),C.black,1)
-btnHolder.ZIndex=5; btnHolder.AutomaticSize=Enum.AutomaticSize.Y
+local btnHolder = Instance.new("CanvasGroup")
+btnHolder.Name = "BtnHolder"
+btnHolder.Size = UDim2.new(0,250,0,0)
+btnHolder.Position = UDim2.new(0.5,-125,0.5,-20)
+btnHolder.BackgroundColor3 = C.black
+btnHolder.BackgroundTransparency = 1
+btnHolder.BorderSizePixel = 0
+btnHolder.AutomaticSize = Enum.AutomaticSize.Y
+btnHolder.ZIndex = 5
+btnHolder.Parent = MM
 Instance.new("UIListLayout",btnHolder).Padding=UDim.new(0,10)
 
 local MENU_DEFS = {
@@ -1149,7 +1157,7 @@ UIS.InputBegan:Connect(function(input, gpe)
                 for _,side in ipairs({-0.5,0.5}) do
                     local spark=Instance.new("Part"); spark.Size=Vector3.new(0.2,0.2,(tHRP3.Position-hrp.Position).Magnitude)
                     spark.CFrame=CFrame.lookAt((hrp.Position+tHRP3.Position)/2,tHRP3.Position)
-                    spark.Anchored=true; spark.CanCollide=false; spark.Material=Enum.Material.Neon
+                    spark.Anchored=true; spark.CanCollide=false; spark.Material=Enum.Material.SmoothPlastic
                     spark.BrickColor=BrickColor.new("Bright yellow"); spark.Parent=workspace
                     task.delay(0.2,function() spark:Destroy() end)
                 end
