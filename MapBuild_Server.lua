@@ -17,6 +17,7 @@ local Players   = game:GetService("Players")
 local RepStore  = game:GetService("ReplicatedStorage")
 local RunSvc    = game:GetService("RunService")
 local TweenSvc  = game:GetService("TweenService")
+local InsertSvc = game:GetService("InsertService")
 
 local ws = workspace
 
@@ -52,9 +53,18 @@ ensureRE("RespawnPrisoner")
 -- ════════════════════════════════════════════════════════════════
 -- TEMEL YARDIMCI FONKSİYONLAR
 -- ════════════════════════════════════════════════════════════════
-local MAP_SIZE = 700
+local MAP_SIZE = 1200
 local WALL_H   = 22
 local GY       = 0
+
+local function resolveMaterial(mat)
+    if typeof(mat) == "EnumItem" then return mat end
+    if type(mat) == "string" then
+        local ok, enumMat = pcall(function() return Enum.Material[mat] end)
+        if ok and enumMat then return enumMat end
+    end
+    return Enum.Material.SmoothPlastic
+end
 
 local function P(name, sz, cf, col, mat, tr, anch)
     local p = Instance.new("Part")
@@ -62,7 +72,7 @@ local function P(name, sz, cf, col, mat, tr, anch)
     p.Size         = sz or Vector3.new(4,4,4)
     p.CFrame       = cf or CFrame.new(0,0,0)
     p.BrickColor   = BrickColor.new(col or "Medium stone grey")
-    p.Material     = mat or Enum.Material.SmoothPlastic
+    p.Material     = resolveMaterial(mat)
     p.Transparency = tr or 0
     p.Anchored     = (anch == nil) and true or anch
     p.CanCollide   = true
@@ -94,7 +104,8 @@ local function surfLight(par, face, bright, range, col)
 end
 
 local function neonPart(name, sz, cf, col, par)
-    local p = P(name, sz, cf, col or "Bright yellow", Enum.Material.Neon, 0)
+    -- Neon kullanılmasın: daha gerçekçi metal/plastik şerit
+    local p = P(name, sz, cf, col or "Dark stone grey", Enum.Material.Metal, 0)
     p.Parent = par or ws; return p
 end
 
@@ -119,6 +130,32 @@ local function billboard(par, txt, size, offset, col)
     lbl.TextSize = 13; lbl.Font = Enum.Font.GothamBold
     lbl.TextXAlignment = Enum.TextXAlignment.Center; lbl.Parent = fr
     return b, lbl
+end
+
+-- Free asset model loader (use your own asset IDs)
+local function tryLoadModelAsset(assetId, parent, name, pivotCF, uniformScale)
+    if type(assetId) ~= "number" or assetId <= 0 then return nil end
+    local ok, pack = pcall(function() return InsertSvc:LoadAsset(assetId) end)
+    if not ok or not pack then
+        warn("[BSC] Asset load failed:", assetId)
+        return nil
+    end
+    local model = pack:FindFirstChildWhichIsA("Model")
+    if not model then
+        pack:Destroy()
+        warn("[BSC] Asset has no Model:", assetId)
+        return nil
+    end
+    model.Name = name or ("Asset_"..assetId)
+    model.Parent = parent or ws
+    if uniformScale and model.ScaleTo then
+        pcall(function() model:ScaleTo(uniformScale) end)
+    end
+    if pivotCF then
+        pcall(function() model:PivotTo(pivotCF) end)
+    end
+    pack:Destroy()
+    return model
 end
 
 -- ════════════════════════════════════════════════════════════════
@@ -216,6 +253,110 @@ local function makeTree(x,z,sc)
     local l3=P("Top",Vector3.new(3.5*sc,3*sc,3.5*sc),CFrame.new(x,16*sc+3*sc,z),"Forest green",Enum.Material.Grass,0.1); l3.Shape=Enum.PartType.Ball; l3.Parent=t
 end
 for _,d in ipairs(TREE_POS) do makeTree(d[1],d[2],d[3]) end
+
+-- Daha gelişmiş ağaç modelleri (5-6 varyant)
+local function createTreeVariant(style, x, z, scale)
+    scale = scale or 1
+    local m = newModel("Tree_"..style, Trees)
+    if style == "Pine" then
+        local trunk = P("Trunk", Vector3.new(1.4*scale, 13*scale, 1.4*scale), CFrame.new(x, 6.5*scale, z), "Reddish brown", Enum.Material.Wood); trunk.Parent = m
+        for i=0,3 do
+            local cone = P("Cone"..i, Vector3.new((8-i*1.3)*scale, (4.2-i*0.6)*scale, (8-i*1.3)*scale), CFrame.new(x, (11+i*2.4)*scale, z), "Dark green", Enum.Material.Grass, 0.04)
+            cone.Shape = Enum.PartType.Ball; cone.Parent = m
+        end
+    elseif style == "Oak" then
+        local trunk = P("Trunk", Vector3.new(2.3*scale, 10*scale, 2.3*scale), CFrame.new(x,5*scale,z), "Brown", Enum.Material.Wood); trunk.Parent = m
+        for _,ofs in ipairs({{-2,12,-1},{2,13,1},{0,14,0},{-1,11,2},{1,12,-2}}) do
+            local leaf = P("Leaf", Vector3.new(7*scale,6*scale,7*scale), CFrame.new(x+ofs[1]*scale,ofs[2]*scale,z+ofs[3]*scale), "Earth green", Enum.Material.Grass, 0.05)
+            leaf.Shape = Enum.PartType.Ball; leaf.Parent = m
+        end
+    elseif style == "Dry" then
+        local trunk = P("Trunk", Vector3.new(1.6*scale, 9*scale, 1.6*scale), CFrame.new(x,4.5*scale,z), "CGA brown", Enum.Material.Wood); trunk.Parent = m
+        for i=1,4 do
+            local br = P("Branch"..i, Vector3.new(0.5*scale,4*scale,0.5*scale), CFrame.new(x,7.5*scale,z) * CFrame.Angles(math.rad(40), math.rad(i*90), 0) * CFrame.new(0,2*scale,0), "CGA brown", Enum.Material.Wood)
+            br.Parent = m
+        end
+    elseif style == "Palm" then
+        local trunk = P("Trunk", Vector3.new(1.2*scale, 12*scale, 1.2*scale), CFrame.new(x,6*scale,z), "Reddish brown", Enum.Material.Wood); trunk.Parent = m
+        for i=0,5 do
+            local leaf = P("PalmLeaf"..i, Vector3.new(1.2*scale,0.35*scale,7*scale), CFrame.new(x,12*scale,z) * CFrame.Angles(math.rad(-8), math.rad(i*60), math.rad(-22)), "Bright green", Enum.Material.Grass)
+            leaf.Parent = m
+        end
+    elseif style == "Birch" then
+        local trunk = P("Trunk", Vector3.new(1.3*scale, 11*scale, 1.3*scale), CFrame.new(x,5.5*scale,z), "Institutional white", Enum.Material.Wood); trunk.Parent = m
+        for _,ofs in ipairs({{-1.5,12,0},{1.5,12,0},{0,13.5,1.5},{0,13.5,-1.5}}) do
+            local leaf = P("Leaf", Vector3.new(5*scale,4*scale,5*scale), CFrame.new(x+ofs[1]*scale,ofs[2]*scale,z+ofs[3]*scale), "Grime", Enum.Material.Grass, 0.04)
+            leaf.Shape = Enum.PartType.Ball; leaf.Parent = m
+        end
+    else -- Cedar
+        local trunk = P("Trunk", Vector3.new(1.8*scale, 11*scale, 1.8*scale), CFrame.new(x,5.5*scale,z), "Brown", Enum.Material.Wood); trunk.Parent = m
+        local crown = P("Crown", Vector3.new(9*scale,8*scale,9*scale), CFrame.new(x,12*scale,z), "Forest green", Enum.Material.Grass, 0.05)
+        crown.Shape = Enum.PartType.Ball; crown.Parent = m
+    end
+end
+
+for i=1,6 do
+    local ang = (math.pi * 2) * (i/6)
+    createTreeVariant("Pine", math.cos(ang)*420, math.sin(ang)*410, 1.25)
+    createTreeVariant("Oak", math.cos(ang+0.6)*455, math.sin(ang+0.6)*435, 1.4)
+    createTreeVariant("Dry", math.cos(ang+0.9)*500, math.sin(ang+0.9)*470, 1.1)
+    createTreeVariant("Palm", math.cos(ang+1.2)*360, math.sin(ang+1.2)*510, 1.15)
+    createTreeVariant("Birch", math.cos(ang+1.6)*530, math.sin(ang+1.6)*380, 1.2)
+    createTreeVariant("Cedar", math.cos(ang+2.1)*470, math.sin(ang+2.1)*520, 1.3)
+end
+
+-- 6-7 farklı taş/kaya varyantı + büyük dağ sırtları
+local Rocks = newModel("RockField")
+local rockMats = {Enum.Material.Slate, Enum.Material.Basalt, Enum.Material.Rock, Enum.Material.Concrete, Enum.Material.Cobblestone, Enum.Material.CrackedLava, Enum.Material.Granite}
+local function rockPart(name, sz, cf, mat)
+    local r = P(name, sz, cf, "Dark stone grey", mat)
+    r.Parent = Rocks
+    r.Orientation = Vector3.new(math.random(-25,25), math.random(0,360), math.random(-25,25))
+    return r
+end
+
+for i=1,160 do
+    local ring = 420 + math.random()*170
+    local ang = math.random()*math.pi*2
+    local x,z = math.cos(ang)*ring, math.sin(ang)*ring
+    local h = math.random(8,24)
+    rockPart("Rock", Vector3.new(math.random(6,15), h, math.random(6,15)), CFrame.new(x,h/2,z), rockMats[(i % #rockMats)+1])
+end
+
+local Mountains = newModel("MountainRidges")
+local function mountainBand(cx, cz, len, step, baseH, dir)
+    for i=0,len do
+        local noise = math.noise(i*0.2, cx*0.01, cz*0.01)
+        local h = baseH + math.abs(noise)*30 + math.random(0,10)
+        local x = cx + math.cos(dir) * i * step
+        local z = cz + math.sin(dir) * i * step
+        local peak = P("Peak", Vector3.new(28, h, 28), CFrame.new(x, h/2, z), "Dark stone grey", Enum.Material.Slate)
+        peak.Parent = Mountains
+        peak.Orientation = Vector3.new(math.random(-12,12), math.random(0,360), math.random(-12,12))
+    end
+end
+
+mountainBand(-540, -520, 32, 26, 45, math.rad(20))
+mountainBand(-560,  520, 31, 25, 42, math.rad(-15))
+mountainBand( 520, -560, 34, 24, 48, math.rad(165))
+mountainBand( 560,  530, 35, 25, 46, math.rad(200))
+
+-- Blok tünel (dağ içi geçiş)
+local Tunnel = newModel("MainTunnel")
+local function tunnelPart(n, sz, cf, mat)
+    local t = P(n, sz, cf, "Dark stone grey", mat or Enum.Material.Slate)
+    t.Parent = Tunnel
+    return t
+end
+
+local tunnelX, tunnelZ = 0, 470
+tunnelPart("Floor", Vector3.new(120, 2, 34), CFrame.new(tunnelX, 1, tunnelZ), Enum.Material.Rock)
+tunnelPart("Roof", Vector3.new(120, 2, 34), CFrame.new(tunnelX, 26, tunnelZ), Enum.Material.Rock)
+tunnelPart("WallL", Vector3.new(120, 26, 2), CFrame.new(tunnelX, 13, tunnelZ-16), Enum.Material.Slate)
+tunnelPart("WallR", Vector3.new(120, 26, 2), CFrame.new(tunnelX, 13, tunnelZ+16), Enum.Material.Slate)
+for i=-5,5 do
+    tunnelPart("Beam"..i, Vector3.new(2, 24, 30), CFrame.new(tunnelX+i*11, 13, tunnelZ), Enum.Material.Wood)
+end
 
 -- ════════════════════════════════════════════════════════════════
 -- §3  KEYCARD KAPI SİSTEMİ
@@ -378,13 +519,13 @@ makeKeycardDoor("Canteen",CFrame.new(PHQX,5.5,PHQZ+17)*CFrame.Angles(0,0,0), Vec
 
 -- İç lambalar
 for _, pos in ipairs({{-28,12,-22},{28,12,-22},{0,12,0},{-28,12,22},{28,12,22}}) do
-    local lt=P("HQLight",Vector3.new(3,0.4,3),CFrame.new(PHQX+pos[1],pos[2],PHQZ+pos[3]),"White",Enum.Material.Neon,0)
+    local lt=P("HQLight",Vector3.new(3,0.4,3),CFrame.new(PHQX+pos[1],pos[2],PHQZ+pos[3]),"White",Enum.Material.SmoothPlastic,0)
     lt.Parent=PHQ; ptLight(lt,2.5,22,Color3.fromRGB(230,235,255))
 end
 
 -- Dış lambalar
 for _,side in ipairs({-40,40}) do
-    local lt=P("ExtLight",Vector3.new(2,2,2),CFrame.new(PHQX+side,17,PHQZ-35),"Bright blue",Enum.Material.Neon)
+    local lt=P("ExtLight",Vector3.new(2,2,2),CFrame.new(PHQX+side,17,PHQZ-35),"Bright blue",Enum.Material.SmoothPlastic)
     lt.Parent=PHQ; ptLight(lt,3,28,Color3.fromRGB(100,140,255))
 end
 
@@ -498,7 +639,7 @@ local function makeCell(cx, cz, idx)
     table.insert(cellLights,{light=light,model=cellMdl,idx=idx})
 
     -- Işık açma/kapama butonu (duvar üstünde)
-    local lightBtn=P("LightBtn"..idx,Vector3.new(0.6,0.6,0.4),CFrame.new(PRSX+cx-5.8,BASY+4,PRSZ+cz-3),"Bright green",Enum.Material.Neon)
+    local lightBtn=P("LightBtn"..idx,Vector3.new(0.6,0.6,0.4),CFrame.new(PRSX+cx-5.8,BASY+4,PRSZ+cz-3),"Bright green",Enum.Material.SmoothPlastic)
     lightBtn.Parent=cellMdl
     local lbBB,lbLbl=billboard(lightBtn,"💡 Işık",UDim2.new(0,100,0,34),Vector3.new(0,1.5,0))
     lbLbl.TextSize=11
@@ -900,7 +1041,115 @@ end
 for _,tc in ipairs(TOOLS_CFG) do task.spawn(function() makeToolSpawn(tc) end) end
 
 -- ════════════════════════════════════════════════════════════════
--- §12  AYDINLATMA
+-- §12  PROFESSIONAL REBUILD + ASSET SLOT SYSTEM
+-- ════════════════════════════════════════════════════════════════
+local function rebuildPoliceHQProfessional()
+    local old = ws:FindFirstChild("PoliceHQ")
+    if old then old:Destroy() end
+
+    local hq = newModel("PoliceHQ_Pro")
+    local ox, oz = 120, -140
+
+    local floor = P("MainFloor", Vector3.new(120,1,90), CFrame.new(ox,0.5,oz), "Medium stone grey", Enum.Material.Concrete); floor.Parent = hq
+    local roof  = P("MainRoof",  Vector3.new(122,2,92), CFrame.new(ox,20,oz), "Dark stone grey", Enum.Material.Concrete); roof.Parent = hq
+
+    local walls = {
+        {Vector3.new(120,18,2), 0,10,-45}, {Vector3.new(120,18,2), 0,10,45},
+        {Vector3.new(2,18,90), -60,10,0},  {Vector3.new(2,18,90), 60,10,0},
+    }
+    for _,w in ipairs(walls) do
+        local p = P("Wall", w[1], CFrame.new(ox+w[2], w[3], oz+w[4]), "Light stone grey", Enum.Material.Concrete)
+        p.Parent = hq
+    end
+
+    -- Entrance with real door opening (no neon)
+    local frameTop = P("DoorFrameTop", Vector3.new(18,3,2), CFrame.new(ox,15,oz+45), "Dark stone grey", Enum.Material.Metal); frameTop.Parent = hq
+    local frameL   = P("DoorFrameL",   Vector3.new(2,12,2), CFrame.new(ox-8,9,oz+45), "Dark stone grey", Enum.Material.Metal); frameL.Parent = hq
+    local frameR   = P("DoorFrameR",   Vector3.new(2,12,2), CFrame.new(ox+8,9,oz+45), "Dark stone grey", Enum.Material.Metal); frameR.Parent = hq
+    local doorL    = P("EntryDoorL",   Vector3.new(8,12,0.8), CFrame.new(ox-4,9,oz+44.2), "Black", Enum.Material.Metal); doorL.Parent = hq
+    local doorR    = P("EntryDoorR",   Vector3.new(8,12,0.8), CFrame.new(ox+4,9,oz+44.2), "Black", Enum.Material.Metal); doorR.Parent = hq
+
+    local sensor = P("DoorSensor", Vector3.new(10,8,8), CFrame.new(ox,5,oz+38), "Institutional white", Enum.Material.SmoothPlastic, 1)
+    sensor.CanCollide = false; sensor.Parent = hq
+
+    local openCF_L, closeCF_L = doorL.CFrame * CFrame.new(-4.3,0,0), doorL.CFrame
+    local openCF_R, closeCF_R = doorR.CFrame * CFrame.new( 4.3,0,0), doorR.CFrame
+    local doorBusy = false
+    local function openCloseDoors()
+        if doorBusy then return end
+        doorBusy = true
+        TweenSvc:Create(doorL, TweenInfo.new(0.35), {CFrame=openCF_L}):Play()
+        TweenSvc:Create(doorR, TweenInfo.new(0.35), {CFrame=openCF_R}):Play()
+        task.delay(2.2, function()
+            TweenSvc:Create(doorL, TweenInfo.new(0.35), {CFrame=closeCF_L}):Play()
+            TweenSvc:Create(doorR, TweenInfo.new(0.35), {CFrame=closeCF_R}):Play()
+            task.delay(0.4, function() doorBusy = false end)
+        end)
+    end
+    sensor.Touched:Connect(function(hit)
+        local c = hit and hit.Parent
+        if c and c:FindFirstChildOfClass("Humanoid") then openCloseDoors() end
+    end)
+
+    -- Professional interior blocks
+    for _,d in ipairs({
+        {Vector3.new(2,14,70),-20,8,0}, {Vector3.new(2,14,70),20,8,0},
+        {Vector3.new(40,14,2),0,8,-15}, {Vector3.new(40,14,2),0,8,15},
+    }) do
+        local p = P("InteriorWall", d[1], CFrame.new(ox+d[2], d[3], oz+d[4]), "Institutional white", Enum.Material.Concrete)
+        p.Parent = hq
+    end
+
+    local reception = P("Reception", Vector3.new(18,4,5), CFrame.new(ox,2,oz+24), "Dark stone grey", Enum.Material.Metal); reception.Parent = hq
+    local receptionTop = P("ReceptionTop", Vector3.new(18,0.5,5), CFrame.new(ox,4.25,oz+24), "Medium stone grey", Enum.Material.Marble); receptionTop.Parent = hq
+
+    -- Windows
+    for i=-4,4 do
+        if i ~= 0 then
+            local w1 = P("GlassN", Vector3.new(10,7,0.2), CFrame.new(ox+i*12,11,oz-44.9), "Pastel light blue", Enum.Material.Glass, 0.35); w1.Parent = hq
+            local w2 = P("GlassS", Vector3.new(10,7,0.2), CFrame.new(ox+i*12,11,oz+44.9), "Pastel light blue", Enum.Material.Glass, 0.35); w2.Parent = hq
+        end
+    end
+
+    -- Spawn pads inside new HQ
+    local function spawnPad(name, x, z, teamCol)
+        local sp = Instance.new("SpawnLocation")
+        sp.Name = name
+        sp.Size = Vector3.new(6,0.5,6)
+        sp.CFrame = CFrame.new(ox+x,1.2,oz+z)
+        sp.TeamColor = BrickColor.new(teamCol)
+        sp.Neutral = false
+        sp.Anchored = true
+        sp.Parent = hq
+    end
+    spawnPad("PoliceSpawnA", -35, -30, "Bright blue")
+    spawnPad("PoliceSpawnB",  35, -30, "Bright blue")
+end
+
+rebuildPoliceHQProfessional()
+
+local AssetSlots = {
+    Trees = {
+        -- Example (fill with your real IDs): {id=1234567890, cf=CFrame.new(220,0,-330), scale=1.4, name="Tree_A"},
+    },
+    Rocks = {
+        -- Example: {id=1234567891, cf=CFrame.new(-380,0,460), scale=2.0, name="Rock_A"},
+    },
+    Props = {
+        -- Example: {id=1234567892, cf=CFrame.new(110,0,-120), scale=1.0, name="Bed_A"},
+    }
+}
+
+local AssetWorld = newModel("ImportedAssets")
+for bucket, list in pairs(AssetSlots) do
+    local folder = newModel(bucket, AssetWorld)
+    for _,it in ipairs(list) do
+        tryLoadModelAsset(it.id, folder, it.name, it.cf, it.scale)
+    end
+end
+
+-- ════════════════════════════════════════════════════════════════
+-- §13  AYDINLATMA
 -- ════════════════════════════════════════════════════════════════
 local Lighting = game:GetService("Lighting")
 Lighting.Ambient         = Color3.fromRGB(70,75,95)
