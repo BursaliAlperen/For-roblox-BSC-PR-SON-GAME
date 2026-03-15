@@ -21,6 +21,13 @@ local RunSvc     = game:GetService("RunService")
 local Players    = game:GetService("Players")
 local RepStorage = game:GetService("ReplicatedStorage")
 
+-- BSC anim sistemi aktifse bu legacy script çakışma yaratmasın.
+local remotes = RepStorage:FindFirstChild("Remotes")
+if remotes and remotes:FindFirstChild("PlayAnim") then
+    warn("[ANIMATIONS_SERVER] BSC PlayAnim bulundu, legacy ANIMATIONS_SERVER pasif bırakıldı.")
+    return
+end
+
 -- ─── RemoteEvent ──────────────────────────────────────────────
 local PlayAnimationState = RepStorage:FindFirstChild("PlayAnimationState")
 if not PlayAnimationState then

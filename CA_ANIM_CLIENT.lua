@@ -23,6 +23,13 @@ local RunSvc     = game:GetService("RunService")
 local Players    = game:GetService("Players")
 local RepStorage = game:GetService("ReplicatedStorage")
 
+-- BSC anim sistemi yüklüyse bu eski script'i pasif bırak.
+local remotes = RepStorage:FindFirstChild("Remotes")
+if remotes and remotes:FindFirstChild("PlayAnim") then
+    warn("[CA_ANIM] BSC PlayAnim bulundu, CA_ANIM pasif bırakıldı.")
+    return
+end
+
 local Char        = script.Parent
 local Hum         = Char:WaitForChild("Humanoid")
 local LocalPlayer = Players:GetPlayerFromCharacter(Char)
