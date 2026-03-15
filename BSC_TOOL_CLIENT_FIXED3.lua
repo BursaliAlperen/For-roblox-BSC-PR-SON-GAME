@@ -48,6 +48,48 @@ local connected  = {}
 local equipped   = nil
 local cuffMode   = "Front"
 
+local TOOL_GRIPS = {
+	Handcuff = CFrame.new(0, -0.55, -0.15) * CFrame.Angles(math.rad(-90), 0, 0),
+	Chain    = CFrame.new(0, -0.50, -0.25) * CFrame.Angles(math.rad(-90), 0, 0),
+	Rope     = CFrame.new(0, -0.45, -0.20) * CFrame.Angles(math.rad(-90), 0, 0),
+	Taser    = CFrame.new(0, -0.20, -0.35) * CFrame.Angles(0, math.rad(90), 0),
+}
+
+local function findTargetCharacterFromPart(part)
+	if not part then return nil end
+	local cur = part
+	for _ = 1, 8 do
+		if not cur then break end
+		if cur:IsA("Model") and cur:FindFirstChildOfClass("Humanoid") then
+			return cur
+		end
+		cur = cur.Parent
+	end
+	return part:FindFirstAncestorOfClass("Model")
+end
+
+local function nearestTargetCharacter(maxDistance)
+	local myHRP = Char and Char:FindFirstChild("HumanoidRootPart")
+	if not myHRP then return nil end
+
+	local bestChar, bestDist = nil, maxDistance or 9
+	for _, plr in ipairs(Players:GetPlayers()) do
+		if plr ~= LP and plr.Character then
+			local tChar = plr.Character
+			local hum = tChar:FindFirstChildOfClass("Humanoid")
+			local hrp = tChar:FindFirstChild("HumanoidRootPart")
+			if hum and hrp and hum.Health > 0 then
+				local dist = (hrp.Position - myHRP.Position).Magnitude
+				if dist <= bestDist then
+					bestDist = dist
+					bestChar = tChar
+				end
+			end
+		end
+	end
+	return bestChar
+end
+
 -- Tool → restraint type mapping
 local TOOL_RESTRAINT = {
 	Handcuff = "Handcuff",
@@ -218,6 +260,12 @@ local function connectTool(tool)
 
 	tool.Equipped:Connect(function()
 		equipped=tool
+		local gripCF = TOOL_GRIPS[tool.Name]
+		if gripCF then
+			pcall(function()
+				tool.Grip = gripCF
+			end)
+		end
 		if tool.Name=="Handcuff" and LP:GetAttribute("Team")=="POLICE" then openUI() end
 	end)
 	tool.Unequipped:Connect(function()
@@ -240,20 +288,20 @@ local function connectTool(tool)
 		end
 		lastUsed[tool.Name]=now
 
-		local tgt=mouse.Target; if not tgt then return end
+		local tgt=mouse.Target
 
 		-- Keycard: send raw part
 		if tool.Name=="Keycard" then
 			if Remotes then
 				local remote=Remotes:FindFirstChild("Keycard")
-				if remote then remote:FireServer(tgt) end
+				if remote and tgt then remote:FireServer(tgt) end
 			end
 			return
 		end
 
 		-- Punch
 		if tool.Name=="Punch" then
-			local tChar=tgt:FindFirstAncestorOfClass("Model"); if not tChar then return end
+			local tChar=findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8); if not tChar then return end
 			local vp=Players:GetPlayerFromCharacter(tChar); if not vp then return end
 			if vp==LP then return end
 			if Remotes then
@@ -266,7 +314,7 @@ local function connectTool(tool)
 		-- Restraint tools (Handcuff, Chain, Rope, Taser)
 		local restraintType=TOOL_RESTRAINT[tool.Name]
 		if restraintType then
-			local tChar=tgt:FindFirstAncestorOfClass("Model"); if not tChar then return end
+			local tChar=findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8); if not tChar then return end
 			if tChar==Char then return end
 			if not tChar:FindFirstChildOfClass("Humanoid") then return end
 			if not R_Apply then

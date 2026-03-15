@@ -59,11 +59,22 @@ local function setupChar(player, char)
         broadcast(player, animName, looped)
     end)
 
+    -- Handcuff modu değişirse (Front/Back) ve oyuncu zaten kelepçeliyse
+    -- anında doğru animasyona geç.
+    local cuffConn = char:GetAttributeChangedSignal("CuffMode"):Connect(function()
+        local state = char:GetAttribute("RestraintState") or "Free"
+        if state == "Handcuffed" then
+            local animName, looped = resolveAnim(char, state)
+            broadcast(player, animName, looped)
+        end
+    end)
+
     -- Ölünce Idle yayınla + conn temizle
     local hum = char:WaitForChild("Humanoid", 5)
     if hum then
         hum.Died:Once(function()
             conn:Disconnect()
+            cuffConn:Disconnect()
             broadcast(player, "Idle", true)
         end)
     end

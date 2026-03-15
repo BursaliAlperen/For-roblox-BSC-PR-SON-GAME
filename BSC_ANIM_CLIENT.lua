@@ -427,16 +427,9 @@ R_Anim.OnClientEvent:Connect(function(targetPlayer, animName, looped)
         if not tChar then return end
         ctrl = otherCtrls[tChar]
         if not ctrl then
-            -- Henüz kurulmamışsa kur
-            task.spawn(function()
-                setupOtherChar(targetPlayer, tChar)
-                task.wait(0.5)
-                ctrl = otherCtrls[tChar]
-                if ctrl then
-                    -- Tekrar dene
-                    R_Anim:FireServer()  -- bu olmaz, sadece retry için
-                end
-            end)
+            -- Henüz kurulmamışsa kur ve bir sonraki event'i bekle
+            -- (client'tan server'a FireServer atarak retry yapmak yanlıştı)
+            task.spawn(setupOtherChar, targetPlayer, tChar)
             return
         end
     end

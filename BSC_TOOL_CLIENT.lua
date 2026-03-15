@@ -57,6 +57,48 @@ local TOOL_TO_TYPE = {
     Rope     = "Rope",
 }
 
+local TOOL_GRIPS = {
+    Handcuff = CFrame.new(0, -0.55, -0.15) * CFrame.Angles(math.rad(-90), 0, 0),
+    Chain    = CFrame.new(0, -0.50, -0.25) * CFrame.Angles(math.rad(-90), 0, 0),
+    Rope     = CFrame.new(0, -0.45, -0.20) * CFrame.Angles(math.rad(-90), 0, 0),
+    Taser    = CFrame.new(0, -0.20, -0.35) * CFrame.Angles(0, math.rad(90), 0),
+}
+
+local function findTargetCharacterFromPart(part)
+    if not part then return nil end
+    local cur = part
+    for _ = 1, 8 do
+        if not cur then break end
+        if cur:IsA("Model") and cur:FindFirstChildOfClass("Humanoid") then
+            return cur
+        end
+        cur = cur.Parent
+    end
+    return part:FindFirstAncestorOfClass("Model")
+end
+
+local function nearestTargetCharacter(maxDistance)
+    local myHRP = Char and Char:FindFirstChild("HumanoidRootPart")
+    if not myHRP then return nil end
+
+    local bestChar, bestDist = nil, maxDistance or 9
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= LP and plr.Character then
+            local tChar = plr.Character
+            local hum = tChar:FindFirstChildOfClass("Humanoid")
+            local hrp = tChar:FindFirstChild("HumanoidRootPart")
+            if hum and hrp and hum.Health > 0 then
+                local dist = (hrp.Position - myHRP.Position).Magnitude
+                if dist <= bestDist then
+                    bestDist = dist
+                    bestChar = tChar
+                end
+            end
+        end
+    end
+    return bestChar
+end
+
 -- ── UI YARDIMCILAR ─────────────────────────────────────────────────────
 local function cr(o,r) local c=Instance.new("UICorner");c.CornerRadius=UDim.new(0,r or 6);c.Parent=o end
 local function tw(o,p,t,s) TweenSvc:Create(o,TweenInfo.new(t or 0.25,s or Enum.EasingStyle.Back,Enum.EasingDirection.Out),p):Play() end
@@ -214,6 +256,12 @@ local function connectTool(tool)
 
     tool.Equipped:Connect(function()
         equipped = tool
+        local gripCF = TOOL_GRIPS[tool.Name]
+        if gripCF then
+            pcall(function()
+                tool.Grip = gripCF
+            end)
+        end
         if tool.Name=="Handcuff" and LP:GetAttribute("Team")=="POLICE" then
             openUI()
         end
@@ -241,18 +289,17 @@ local function connectTool(tool)
         lastUsed[tool.Name] = now
 
         local tgt = mouse.Target
-        if not tgt then return end
 
         -- Keycard
         if tool.Name=="Keycard" then
             local r = Remotes:FindFirstChild("Keycard")
-            if r then r:FireServer(tgt) end
+            if r and tgt then r:FireServer(tgt) end
             return
         end
 
         -- Punch
         if tool.Name=="Punch" then
-            local tChar = tgt:FindFirstAncestorOfClass("Model")
+            local tChar = findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8)
             if not tChar then return end
             local vp = Players:GetPlayerFromCharacter(tChar)
             if not vp or vp==LP then return end
@@ -267,7 +314,7 @@ local function connectTool(tool)
         -- Restraint tool'lar
         local rType = TOOL_TO_TYPE[tool.Name]
         if rType then
-            local tChar = tgt:FindFirstAncestorOfClass("Model")
+            local tChar = findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8)
             if not tChar or tChar==Char then return end
             if not tChar:FindFirstChildOfClass("Humanoid") then return end
             -- R_Apply nil değil (başta kontrol ettik)
