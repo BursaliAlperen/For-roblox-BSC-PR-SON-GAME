@@ -18,6 +18,11 @@ if not Remotes then
     return
 end
 
+if Remotes:FindFirstChild("KeycardAccess") then
+    warn("[KEYCARD] SERVER_MAIN KeycardAccess bulundu, BSC_KEYCARD_SERVER pasif bırakıldı.")
+    return
+end
+
 local R_Keycard = Remotes:WaitForChild("Keycard", 15)
 if not R_Keycard then
     warn("[KEYCARD] Keycard remote yok!")

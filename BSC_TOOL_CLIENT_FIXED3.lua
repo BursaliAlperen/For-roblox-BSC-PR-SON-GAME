@@ -31,12 +31,16 @@ local function waitRemote(name, timeout)
 end
 
 local Remotes   = RS:WaitForChild("Remotes", 15)
-local R_Apply   = waitRemote("ApplyRestraint")
-local R_Remove  = waitRemote("RemoveRestraint")
 local R_CuffTog = waitRemote("CuffModeToggle")
+local R_Apply = {
+	Handcuff = waitRemote("ApplyRestraint", 3) or waitRemote("ArrestPlayer", 3),
+	Taser    = waitRemote("ApplyRestraint", 3) or waitRemote("TaserPlayer", 3),
+	Chain    = waitRemote("ApplyRestraint", 3) or waitRemote("ChainPlayer", 3),
+	Rope     = waitRemote("ApplyRestraint", 3) or waitRemote("HogtiePlayer", 3),
+}
 
 -- CRITICAL: If remotes failed to load, abort entirely
-if not R_Apply or not R_Remove or not R_CuffTog then
+if not R_Apply.Handcuff or not R_CuffTog then
 	warn("[TOOL_CLIENT] FATAL: Required remotes missing. Make sure 1_BSC_SETUP runs first!")
 	return
 end
@@ -293,7 +297,7 @@ local function connectTool(tool)
 		-- Keycard: send raw part
 		if tool.Name=="Keycard" then
 			if Remotes then
-				local remote=Remotes:FindFirstChild("Keycard")
+				local remote=Remotes:FindFirstChild("Keycard") or Remotes:FindFirstChild("KeycardAccess")
 				if remote and tgt then remote:FireServer(tgt) end
 			end
 			return
@@ -305,7 +309,7 @@ local function connectTool(tool)
 			local vp=Players:GetPlayerFromCharacter(tChar); if not vp then return end
 			if vp==LP then return end
 			if Remotes then
-				local remote=Remotes:FindFirstChild("Punch")
+				local remote=Remotes:FindFirstChild("Punch") or Remotes:FindFirstChild("PunchPlayer")
 				if remote then remote:FireServer(vp) end
 			end
 			return
@@ -317,11 +321,16 @@ local function connectTool(tool)
 			local tChar=findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8); if not tChar then return end
 			if tChar==Char then return end
 			if not tChar:FindFirstChildOfClass("Humanoid") then return end
-			if not R_Apply then
-				warn("[TOOL_CLIENT] R_Apply is nil! Remote missing.")
+			local remote = R_Apply[tool.Name]
+			if not remote then
+				warn("[TOOL_CLIENT] R_Apply is nil! Remote missing:", tool.Name)
 				return
 			end
-			R_Apply:FireServer(tChar, restraintType)
+			if remote.Name == "ApplyRestraint" then
+				remote:FireServer(tChar, restraintType)
+			else
+				remote:FireServer(tChar)
+			end
 		end
 	end)
 end

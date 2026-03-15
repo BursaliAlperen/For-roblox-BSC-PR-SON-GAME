@@ -26,20 +26,25 @@ if not Remotes then
     return
 end
 
-local function getR(name)
-    local r = Remotes:WaitForChild(name, 10)
-    if not r then warn("[TOOL_CLIENT] Remote bulunamadı:", name) end
-    return r
+local function getAnyRemote(names)
+    for _, name in ipairs(names) do
+        local r = Remotes:FindFirstChild(name)
+        if r then return r end
+    end
+    return nil
 end
 
-local R_Apply   = getR("ApplyRestraint")
-local R_Remove  = getR("RemoveRestraint")
-local R_CuffTog = getR("CuffModeToggle")
-local R_Emote   = getR("PlayEmote")
+local R_CuffTog = getAnyRemote({"CuffModeToggle"})
+local R_Emote   = getAnyRemote({"PlayEmote"})
+local R_Apply   = {
+    Handcuff = getAnyRemote({"ApplyRestraint", "ArrestPlayer"}),
+    Taser    = getAnyRemote({"ApplyRestraint", "TaserPlayer"}),
+    Chain    = getAnyRemote({"ApplyRestraint", "ChainPlayer"}),
+    Rope     = getAnyRemote({"ApplyRestraint", "HogtiePlayer"}),
+}
 
--- ApplyRestraint mutlaka lazım
-if not R_Apply then
-    warn("[TOOL_CLIENT] FATAL: ApplyRestraint yok, script durdu.")
+if not R_Apply.Handcuff then
+    warn("[TOOL_CLIENT] FATAL: ApplyRestraint/ArrestPlayer yok, script durdu.")
     return
 end
 
@@ -292,7 +297,7 @@ local function connectTool(tool)
 
         -- Keycard
         if tool.Name=="Keycard" then
-            local r = Remotes:FindFirstChild("Keycard")
+            local r = Remotes:FindFirstChild("Keycard") or Remotes:FindFirstChild("KeycardAccess")
             if r and tgt then r:FireServer(tgt) end
             return
         end
@@ -303,7 +308,7 @@ local function connectTool(tool)
             if not tChar then return end
             local vp = Players:GetPlayerFromCharacter(tChar)
             if not vp or vp==LP then return end
-            local r = Remotes:FindFirstChild("Punch")
+            local r = Remotes:FindFirstChild("Punch") or Remotes:FindFirstChild("PunchPlayer")
             if r then r:FireServer(vp) end
             return
         end
@@ -317,8 +322,14 @@ local function connectTool(tool)
             local tChar = findTargetCharacterFromPart(tgt) or nearestTargetCharacter(8)
             if not tChar or tChar==Char then return end
             if not tChar:FindFirstChildOfClass("Humanoid") then return end
-            -- R_Apply nil değil (başta kontrol ettik)
-            R_Apply:FireServer(tChar, rType)
+            local remote = R_Apply[tool.Name]
+            if not remote then return end
+
+            if remote.Name == "ApplyRestraint" then
+                remote:FireServer(tChar, rType)
+            else
+                remote:FireServer(tChar)
+            end
         end
     end)
 end

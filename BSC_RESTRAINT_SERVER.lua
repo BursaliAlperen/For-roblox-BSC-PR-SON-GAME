@@ -17,6 +17,11 @@ local RS      = game:GetService("ReplicatedStorage")
 local Remotes   = RS:WaitForChild("Remotes", 15)
 if not Remotes then warn("[RESTRAINT] Remotes yok!"); return end
 
+if Remotes:FindFirstChild("ArrestPlayer") and Remotes:FindFirstChild("RestraintUpdate") then
+    warn("[RESTRAINT] SERVER_MAIN uyumluluk modu: BSC_RESTRAINT_SERVER pasif bırakıldı.")
+    return
+end
+
 local R_Apply   = Remotes:WaitForChild("ApplyRestraint",  15)
 local R_Remove  = Remotes:WaitForChild("RemoveRestraint", 15)
 local R_Escape  = Remotes:WaitForChild("EscapeAttempt",   15)

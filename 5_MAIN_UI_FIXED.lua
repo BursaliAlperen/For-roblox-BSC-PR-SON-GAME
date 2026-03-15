@@ -452,13 +452,18 @@ togBtn.MouseButton1Click:Connect(function() setSlide(not slideOpen) end)
 local stamina   = 100
 local sprinting = false
 
+local function getCharState(char)
+	if not char then return "Free" end
+	return char:GetAttribute("RestraintState") or char:GetAttribute("State") or "Free"
+end
+
 local function setSprint(a)
 	if sprinting == a then return end
 	sprinting = a
 	_G.IsLocalSprinting = a
 	local c = player.Character
 	local h = c and c:FindFirstChildOfClass("Humanoid")
-	if h and (c:GetAttribute("RestraintState") or "Free") == "Free" then
+	if h and getCharState(c) == "Free" then
 		h.WalkSpeed = a and 22 or 16
 	end
 	sprintBtn.BackgroundColor3 = a and C.ACC  or C.SURF
@@ -472,7 +477,7 @@ UIS.InputBegan:Connect(function(inp, gui)
 	if gui then return end
 	if inp.KeyCode == Enum.KeyCode.LeftShift or inp.KeyCode == Enum.KeyCode.RightShift then
 		local c = player.Character
-		if c and (c:GetAttribute("RestraintState") or "Free") == "Free" and stamina > 5 then
+		if c and getCharState(c) == "Free" and stamina > 5 then
 			setSprint(true)
 		end
 	end
@@ -571,7 +576,7 @@ local function buildNearList(data)
 			end
 			nb.BackgroundColor3 = C.ACC
 			if nearSel and nearSel.Character then
-				refreshStickman(nearSel.Character:GetAttribute("RestraintState") or "Free")
+				refreshStickman(getCharState(nearSel.Character))
 			end
 		end)
 	end
@@ -677,7 +682,7 @@ local holding = false; local holdConn = nil; local HOLD_DUR = 2; local ePresses 
 attBtn.MouseButton1Down:Connect(function()
 	local targetState = curSt
 	if nearSel and nearSel.Character then
-		targetState = nearSel.Character:GetAttribute("RestraintState") or "Free"
+		targetState = getCharState(nearSel.Character)
 	end
 	if targetState == "Free" or targetState == "Chained" or targetState == "Stunned" then return end
 	if holding then return end
@@ -721,7 +726,7 @@ UIS.InputBegan:Connect(function(inp, gui)
 	if not forgeFrame.Visible then openForge(); return end
 	local targetState = curSt
 	if nearSel and nearSel.Character then
-		targetState = nearSel.Character:GetAttribute("RestraintState") or "Free"
+		targetState = getCharState(nearSel.Character)
 	end
 	if targetState ~= "Chained" then return end
 	ePresses = math.min(ePresses+1, 12)
@@ -790,7 +795,7 @@ for i, en in ipairs(EMOTES) do
 	local cap = en
 	eb.MouseButton1Click:Connect(function()
 		local c = player.Character
-		if c and (c:GetAttribute("RestraintState") or "Free") == "Free" and R.PlayEmote then
+		if c and getCharState(c) == "Free" and R.PlayEmote then
 			R.PlayEmote:FireServer(cap)
 		end
 		closeEmote(); setSlide(false)
@@ -799,7 +804,7 @@ end
 
 local function openEmote()
 	local c = player.Character
-	if c and (c:GetAttribute("RestraintState") or "Free") ~= "Free" then
+	if c and getCharState(c) ~= "Free" then
 		return
 	end
 	emoteOvr.Visible   = true
@@ -828,7 +833,7 @@ UIS.InputBegan:Connect(function(inp, gui)
 	local em = EMOTE_KEYS[inp.KeyCode]
 	if em then
 		local c = player.Character
-		if c and (c:GetAttribute("RestraintState") or "Free") == "Free" and R.PlayEmote then
+		if c and getCharState(c) == "Free" and R.PlayEmote then
 			R.PlayEmote:FireServer(em)
 		end
 	end
@@ -884,10 +889,20 @@ local function setupChar(char)
 		end)
 	end
 
-	char:GetAttributeChangedSignal("RestraintState"):Connect(function()
-		onState(char:GetAttribute("RestraintState"))
-	end)
-	onState(char:GetAttribute("RestraintState") or "Free")
+	local function bindStateSignal(attrName)
+		local ok, signal = pcall(function()
+			return char:GetAttributeChangedSignal(attrName)
+		end)
+		if ok and signal then
+			signal:Connect(function()
+				onState(getCharState(char))
+			end)
+		end
+	end
+
+	bindStateSignal("RestraintState")
+	bindStateSignal("State")
+	onState(getCharState(char))
 end
 
 player.CharacterAdded:Connect(setupChar)

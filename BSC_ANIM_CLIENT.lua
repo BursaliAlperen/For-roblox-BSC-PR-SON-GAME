@@ -390,9 +390,9 @@ if not Remotes then
     return
 end
 
-local R_Anim = Remotes:WaitForChild("PlayAnim", 15)
+local R_Anim = Remotes:FindFirstChild("PlayAnim") or Remotes:FindFirstChild("PlayAnimation")
 if not R_Anim then
-    warn("[ANIM_CLIENT] PlayAnim remote bulunamadı!")
+    warn("[ANIM_CLIENT] PlayAnim/PlayAnimation remote bulunamadı!")
     return
 end
 
@@ -405,6 +405,8 @@ local ACTION_MAP = {
     Hogtied = {looped=true},
     Chained = {looped=true},
     Stunned = {looped=false},
+    Punch   = {looped=false},
+    Hit     = {looped=false},
     -- Emotes (Emote_ prefix ile depolanmış)
     Wave    = {looped=false, emote=true},
     Sit     = {looped=false, emote=true},
@@ -415,7 +417,33 @@ local ACTION_MAP = {
     Lay     = {looped=false, emote=true},
 }
 
-R_Anim.OnClientEvent:Connect(function(targetPlayer, animName, looped)
+local function normalizeAnimName(name)
+    if type(name) ~= "string" then return nil end
+    local map = {
+        RopeAnim = "Rope",
+        TaserAnim = "Stunned",
+    }
+    if map[name] then return map[name] end
+    if name:sub(-4) == "Anim" then
+        return name:sub(1, -5)
+    end
+    return name
+end
+
+R_Anim.OnClientEvent:Connect(function(a, b, c)
+    local targetPlayer, animName, looped
+
+    if typeof(a) == "Instance" and a:IsA("Player") then
+        targetPlayer = a
+        animName = b
+        looped = c
+    else
+        targetPlayer = LP
+        animName = a
+        looped = b
+    end
+
+    animName = normalizeAnimName(animName)
     if not targetPlayer or not animName then return end
 
     -- Controller'ı seç

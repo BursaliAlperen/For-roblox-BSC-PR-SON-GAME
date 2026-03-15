@@ -16,6 +16,11 @@ local RS      = game:GetService("ReplicatedStorage")
 local Remotes = RS:WaitForChild("Remotes", 15)
 if not Remotes then warn("[ANIM_SERVER] Remotes yok!"); return end
 
+if Remotes:FindFirstChild("PlayAnimation") and Remotes:FindFirstChild("RestraintUpdate") then
+    warn("[ANIM_SERVER] SERVER_MAIN uyumluluk modu: BSC_ANIM_SERVER pasif bırakıldı.")
+    return
+end
+
 local R_Anim  = Remotes:WaitForChild("PlayAnim",  15)
 local R_Emote = Remotes:WaitForChild("PlayEmote", 15)
 
