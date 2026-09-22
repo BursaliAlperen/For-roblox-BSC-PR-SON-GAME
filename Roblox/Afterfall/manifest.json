@@ -1,0 +1,19 @@
+{
+  "game": {
+    "title": "AFTERFALL",
+    "subtitle": "THE LAST SHIFT",
+    "version": "0.9.0-alpha",
+    "build": "github-live"
+  },
+  "server_package": "Roblox/Afterfall/ServerPackage.lua",
+  "ui_config": "Roblox/Afterfall/UIConfig.json",
+  "systems": [
+    "server-authoritative combat",
+    "zombie AI",
+    "loot",
+    "inventory",
+    "crafting",
+    "stamina / hunger / thirst",
+    "DataStore persistence"
+  ]
+}
