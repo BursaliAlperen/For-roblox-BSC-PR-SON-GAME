@@ -116,7 +116,7 @@ local atkLabel=T(acts,"M1  ATTACK",9,UDim2.new(1,-150,1,-30),Enum.Font.GothamBla
 local use=Btn(acts,"E\nUSE",UDim2.fromOffset(68,68),UDim2.new(1,-180,0,42))
 local sprint=iconButton(acts,ASSET.Walk,UDim2.fromOffset(74,74),UDim2.fromOffset(12,38))
 local sprintLabel=T(acts,"WALK",8,UDim2.fromOffset(13,116),Enum.Font.GothamBlack,C.muted); sprintLabel.Size=UDim2.fromOffset(72,14); sprintLabel.TextXAlignment=Enum.TextXAlignment.Center
-local crouch=iconButton(acts,ASSET.Crouch,UDim2.fromOffset(74,74),UDim.fromOffset(91,38))
+local crouch=iconButton(acts,ASSET.Crouch,UDim2.fromOffset(74,74),UDim2.fromOffset(91,38))
 local crouchLabel=T(acts,"CROUCH",8,UDim2.fromOffset(91,116),Enum.Font.GothamBlack,C.muted); crouchLabel.Size=UDim2.fromOffset(74,14); crouchLabel.TextXAlignment=Enum.TextXAlignment.Center
 local sprinting=false; local crouching=false
 local function target()
