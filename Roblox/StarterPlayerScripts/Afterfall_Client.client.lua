@@ -14,6 +14,19 @@ local Notice=R.Notice
 local GetState=R.GetState
 local C=boot.colors
 
+-- Roblox Store UI assets supplied by the developer.
+local ASSET = {
+	Crouch = "rbxassetid://119076315093042",
+	Punch = "rbxassetid://92032492011313",
+	PunchPressed = "rbxassetid://84277397023517",
+	CrouchPressed = "rbxassetid://76617091673589",
+	Run = "rbxassetid://16861351286",
+	Walk = "rbxassetid://16861357039",
+	Vignette = "rbxassetid://4576475453",
+	BloodVignette = "rbxassetid://125824323718804",
+}
+
+
 local gui=Instance.new("ScreenGui")
 gui.Name="AfterfallHUD"; gui.IgnoreGuiInset=true; gui.ResetOnSpawn=false; gui.DisplayOrder=100; gui.Parent=pg
 local root=Instance.new("Frame"); root.Size=UDim2.fromScale(1,1); root.BackgroundTransparency=1; root.Parent=gui
@@ -81,20 +94,53 @@ for i,id in ipairs({"Medkit","Ammo9","Water","Food","Battery","Scrap"}) do
 	hotSlots[i]={id=id,qty=qty}
 end
 
-local acts=F(root,UDim2.fromOffset(310,142),UDim2.new(1,-340,1,-190),C.panel,.06); Rnd(acts,10); Stroke(acts,C.line,.2,1)
-local atk=Btn(acts,"M1\nATTACK",UDim2.fromOffset(92,92),UDim2.new(1,-104,0,11)); atk.TextSize=13
-local use=Btn(acts,"E\nUSE",UDim2.fromOffset(68,68),UDim2.new(1,-180,0,37))
-local sprint=Btn(acts,"SHIFT\nSPRINT",UDim2.fromOffset(68,68),UDim2.fromOffset(12,37))
-local crouch=Btn(acts,"C\nCROUCH",UDim2.fromOffset(68,68),UDim2.fromOffset(86,37))
+local vignette=Instance.new("ImageLabel")
+vignette.Name="Vignette"; vignette.Size=UDim2.fromScale(1,1); vignette.Position=UDim2.fromScale(0,0)
+vignette.BackgroundTransparency=1; vignette.Image=ASSET.Vignette; vignette.ImageTransparency=.72
+vignette.ScaleType=Enum.ScaleType.Stretch; vignette.ZIndex=5; vignette.Parent=root
+
+local damage=Instance.new("ImageLabel")
+damage.Name="BloodVignette"; damage.Size=UDim2.fromScale(1,1); damage.Position=UDim2.fromScale(0,0)
+damage.BackgroundTransparency=1; damage.Image=ASSET.BloodVignette; damage.ImageTransparency=1
+damage.ScaleType=Enum.ScaleType.Stretch; damage.ZIndex=180; damage.Parent=root
+
+local acts=F(root,UDim2.fromOffset(300,150),UDim2.new(1,-330,1,-196),C.panel,.12); Rnd(acts,12); Stroke(acts,C.line,.2,1)
+local function iconButton(parent,image,size,pos)
+	local b=Instance.new("ImageButton")
+	b.AutoButtonColor=false; b.BackgroundTransparency=1; b.Image=image; b.ScaleType=Enum.ScaleType.Fit
+	b.Size=size; b.Position=pos; b.Parent=parent; b.ZIndex=120
+	return b
+end
+local atk=iconButton(acts,ASSET.Punch,UDim2.fromOffset(96,96),UDim2.new(1,-104,0,8))
+local atkLabel=T(acts,"M1  ATTACK",9,UDim2.new(1,-150,1,-30),Enum.Font.GothamBlack,C.text); atkLabel.Size=UDim2.fromOffset(140,16); atkLabel.TextXAlignment=Enum.TextXAlignment.Right
+local use=Btn(acts,"E\nUSE",UDim2.fromOffset(68,68),UDim2.new(1,-180,0,42))
+local sprint=iconButton(acts,ASSET.Walk,UDim2.fromOffset(74,74),UDim2.fromOffset(12,38))
+local sprintLabel=T(acts,"WALK",8,UDim2.fromOffset(13,116),Enum.Font.GothamBlack,C.muted); sprintLabel.Size=UDim2.fromOffset(72,14); sprintLabel.TextXAlignment=Enum.TextXAlignment.Center
+local crouch=iconButton(acts,ASSET.Crouch,UDim2.fromOffset(74,74),UDim.fromOffset(91,38))
+local crouchLabel=T(acts,"CROUCH",8,UDim2.fromOffset(91,116),Enum.Font.GothamBlack,C.muted); crouchLabel.Size=UDim2.fromOffset(74,14); crouchLabel.TextXAlignment=Enum.TextXAlignment.Center
 local sprinting=false; local crouching=false
 local function target()
 	local cam=workspace.CurrentCamera; if not cam then return nil end
 	local v=cam.ViewportSize; local ray=cam:ViewportPointToRay(v.X/2,v.Y*.47); local hit=workspace:Raycast(ray.Origin,ray.Direction*12); return hit and hit.Instance or nil
 end
-atk.Activated:Connect(function() local cam=workspace.CurrentCamera; if cam then Action:FireServer("ATTACK",{direction=cam.CFrame.LookVector}) end end)
+atk.Activated:Connect(function()
+	local cam=workspace.CurrentCamera
+	atk.Image=ASSET.PunchPressed
+	task.delay(.10,function() if atk.Parent then atk.Image=ASSET.Punch end end)
+	if cam then Action:FireServer("ATTACK",{direction=cam.CFrame.LookVector}) end
+end)
 use.Activated:Connect(function() local t=target(); if t then Action:FireServer("USE",{target=t}) end end)
-sprint.Activated:Connect(function() sprinting=not sprinting; Action:FireServer("SPRINT",sprinting) end)
-crouch.Activated:Connect(function() crouching=not crouching; Action:FireServer("CROUCH",crouching) end)
+sprint.Activated:Connect(function()
+	sprinting=not sprinting
+	sprint.Image=sprinting and ASSET.Run or ASSET.Walk
+	sprintLabel.Text=sprinting and "SPRINT" or "WALK"
+	Action:FireServer("SPRINT",sprinting)
+end)
+crouch.Activated:Connect(function()
+	crouching=not crouching
+	crouch.Image=crouching and ASSET.CrouchPressed or ASSET.Crouch
+	Action:FireServer("CROUCH",crouching)
+end)
 
 local inv=F(root,UDim2.new(.84,0,.82,0),UDim2.new(.08,0,.09,0),C.panel,.01); Rnd(inv,10); Stroke(inv,C.line,.1,1); inv.Visible=false; inv.ZIndex=200
 T(inv,"INVENTORY",28,UDim2.fromOffset(24,17),Enum.Font.GothamBlack,C.text)
@@ -122,7 +168,6 @@ local invBtn=Btn(root,"|||\nINVENTORY",UDim2.fromOffset(78,56),UDim2.new(0,30,1,
 local function toggle() inv.Visible=not inv.Visible end
 invBtn.Activated:Connect(toggle); close.Activated:Connect(toggle)
 
-local damage=F(root,UDim2.fromScale(1,1),UDim2.fromScale(0,0),C.danger,1); damage.ZIndex=180
 local notes=F(root,UDim2.fromOffset(320,210),UDim2.new(1,-350,0,94),C.bg,1); notes.ZIndex=300
 local function pop(d)
 	local card=F(notes,UDim2.fromOffset(300,58),UDim2.fromOffset(330,0),C.panel,.02); Rnd(card,7); Stroke(card,d.kind=="danger" and C.danger or (d.kind=="success" and C.success or C.line),.12,1)
@@ -144,21 +189,25 @@ end
 UIS.InputBegan:Connect(function(input,processed)
 	if processed then return end
 	if input.KeyCode==Enum.KeyCode.I or input.KeyCode==Enum.KeyCode.Tab then toggle()
-	elseif input.KeyCode==Enum.KeyCode.LeftShift then sprinting=true; Action:FireServer("SPRINT",true)
+	elseif input.KeyCode==Enum.KeyCode.LeftShift then
+		sprinting=true; sprint.Image=ASSET.Run; sprintLabel.Text="SPRINT"; Action:FireServer("SPRINT",true)
 	elseif input.KeyCode==Enum.KeyCode.LeftControl or input.KeyCode==Enum.KeyCode.C then crouching=not crouching; Action:FireServer("CROUCH",crouching)
 	elseif input.UserInputType==Enum.UserInputType.MouseButton1 then local cam=workspace.CurrentCamera; if cam then Action:FireServer("ATTACK",{direction=cam.CFrame.LookVector}) end
 	elseif input.KeyCode==Enum.KeyCode.One then Action:FireServer("CONSUME","Medkit")
 	elseif input.KeyCode==Enum.KeyCode.Two then Action:FireServer("CONSUME","Water")
 	elseif input.KeyCode==Enum.KeyCode.Three then Action:FireServer("CONSUME","Food") end
 end)
-UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then sprinting=false; Action:FireServer("SPRINT",false) end end)
+UIS.InputEnded:Connect(function(input) if input.KeyCode==Enum.KeyCode.LeftShift then sprinting=false; sprint.Image=ASSET.Walk; sprintLabel.Text="WALK"; Action:FireServer("SPRINT",false) end end)
 
 local last=100
 task.spawn(function()
 	while gui.Parent do
 		local ok,s=pcall(function() return GetState:InvokeServer() end)
 		if ok and s then
-			if s.Health<last-8 then damage.BackgroundTransparency=.82; TweenService:Create(damage,TweenInfo.new(.4),{BackgroundTransparency=1}):Play() end
+			if s.Health<last-8 then
+		damage.ImageTransparency=.18
+		TweenService:Create(damage,TweenInfo.new(.48,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{ImageTransparency=1}):Play()
+	end
 			last=s.Health; update(s)
 		end
 		task.wait(.35)
