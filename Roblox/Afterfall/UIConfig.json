@@ -1,0 +1,23 @@
+{
+  "title": "AFTERFALL",
+  "subtitle": "THE LAST SHIFT",
+  "palette": {
+    "background": "#070A0C",
+    "panel": "#0D1215",
+    "panel2": "#131B1F",
+    "text": "#EDF2F4",
+    "muted": "#839198",
+    "line": "#344249",
+    "accent": "#E6B44A",
+    "danger": "#DF4A4F",
+    "info": "#7DD3DE",
+    "success": "#74D39A"
+  },
+  "hud": {
+    "crosshair": "minimal",
+    "status": "bottom-left",
+    "hotbar": "bottom-center",
+    "actions": "bottom-right",
+    "inventory": "full-screen"
+  }
+}
